@@ -1,0 +1,16 @@
+# Backend
+backend/node_modules/
+backend/.env
+
+# Frontend
+mona/node_modules/
+mona/.env
+mona/build/
+mona/dist/
+
+# Logs
+npm-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
