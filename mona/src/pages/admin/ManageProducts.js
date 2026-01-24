@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
 	FaSearch,
@@ -56,28 +56,26 @@ const ManageProducts = () => {
 	const [selectedProduct, setSelectedProduct] = useState(null);
 	const [selectedProducts, setSelectedProducts] = useState([]);
 	const [selectAll, setSelectAll] = useState(false);
-	const [successMessage, setSuccessMessage] = useState("");
-	const [error, setError] = useState("");
 	const [showAlert, setShowAlert] = useState(false);
 	const [alertMessage, setAlertMessage] = useState("");
 	const [alertType, setAlertType] = useState("info");
 	const [permanentDelete, setPermanentDelete] = useState(false);
 	const [showRestoreModal, setShowRestoreModal] = useState(false);
 
-	const showAlertMessage = (message, type = "info") => {
+	const showAlertMessage = useCallback((message, type = "info") => {
 		setAlertMessage(message);
 		setAlertType(type);
 		setShowAlert(true);
 		setTimeout(() => {
 			setShowAlert(false);
 		}, 5000);
-	};
+	}, []);
 
 	const hideAlert = () => {
 		setShowAlert(false);
 	};
 
-	const fetchProducts = async () => {
+	const fetchProducts = useCallback(async () => {
 		setLoading(true);
 		try {
 			const includeDeleted =
@@ -103,14 +101,13 @@ const ManageProducts = () => {
 			}));
 			setProducts(parsedProducts);
 			setFilteredProducts(parsedProducts);
-			setSuccessMessage("");
 		} catch (error) {
 			console.error("Error fetching products:", error);
 			showAlertMessage("Failed to fetch products", "error");
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [API_URL, deletedFilter, showAlertMessage]);
 
 	useEffect(() => {
 		fetchProducts();
@@ -118,33 +115,9 @@ const ManageProducts = () => {
 			showAlertMessage(location.state.successMessage, "success");
 			window.history.replaceState({}, document.title);
 		}
-	}, [location]);
+	}, [fetchProducts, location.state, showAlertMessage]);
 
-	useEffect(() => {
-		filterAndSortProducts();
-	}, [
-		products,
-		searchTerm,
-		categoryFilter,
-		statusFilter,
-		deletedFilter,
-		sortConfig,
-	]);
-
-	useEffect(() => {
-		const total = Math.ceil(filteredProducts.length / itemsPerPage);
-		setTotalPages(total);
-		if (currentPage > total && total > 0) {
-			setCurrentPage(1);
-		}
-		const indexOfLastItem = currentPage * itemsPerPage;
-		const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-		setCurrentItems(filteredProducts.slice(indexOfFirstItem, indexOfLastItem));
-		setSelectAll(false);
-		setSelectedProducts([]);
-	}, [filteredProducts, currentPage, itemsPerPage]);
-
-	const filterAndSortProducts = () => {
+	const filterAndSortProducts = useCallback(() => {
 		let filtered = [...products];
 		if (searchTerm) {
 			filtered = filtered.filter(
@@ -185,7 +158,24 @@ const ManageProducts = () => {
 			});
 		}
 		setFilteredProducts(filtered);
-	};
+	}, [products, searchTerm, categoryFilter, statusFilter, deletedFilter, sortConfig]);
+
+	useEffect(() => {
+		filterAndSortProducts();
+	}, [filterAndSortProducts]);
+
+	useEffect(() => {
+		const total = Math.ceil(filteredProducts.length / itemsPerPage);
+		setTotalPages(total);
+		if (currentPage > total && total > 0) {
+			setCurrentPage(1);
+		}
+		const indexOfLastItem = currentPage * itemsPerPage;
+		const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+		setCurrentItems(filteredProducts.slice(indexOfFirstItem, indexOfLastItem));
+		setSelectAll(false);
+		setSelectedProducts([]);
+	}, [filteredProducts, currentPage, itemsPerPage]);
 
 	const handleSort = (key) => {
 		let direction = "asc";
@@ -944,7 +934,7 @@ const ManageProducts = () => {
 														<button
 															onClick={() =>
 																navigate(
-																	`/admin/edit-product/${product.product_id}`
+																	`/admin/addormodifyproducts/${product.product_id}`
 																)
 															}
 															className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

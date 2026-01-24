@@ -31,7 +31,7 @@ function App() {
 						<Route path="/admin/dashboard" element={<AdminDashboard />} />
 						<Route path="/admin/manageproducts" element={<ManageProducts />} />
 						<Route
-							path="/admin/addormodifyproducts"
+							path="/admin/addormodifyproducts/:id?"
 							element={<AddOrModifyProduct />}
 						/>
 
