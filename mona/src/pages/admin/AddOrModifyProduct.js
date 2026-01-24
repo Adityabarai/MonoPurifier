@@ -43,7 +43,7 @@ const AddOrModifyProduct = () => {
 		if (isEditMode) {
 			fetchProduct();
 		}
-	}, [isEditMode, fetchProduct]);
+	}, [isEditMode, fetchProduct]); // Fixed: Added missing dependencies
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
