@@ -513,7 +513,7 @@ const ManageProducts = () => {
 			</div>
 		);
 	};
-
+	
 	return (
 		<div className="min-h-screen bg-gray-50 p-4 md:p-6">
 			{showAlert && (
@@ -847,7 +847,7 @@ const ManageProducts = () => {
 														-
 														{calculateDiscountPercentage(
 															product.original_price,
-															product.price
+															product.price,
 														)}
 														%
 													</span>
@@ -898,8 +898,8 @@ const ManageProducts = () => {
 																day: "2-digit",
 																month: "short",
 																year: "numeric",
-															}
-													  )
+															},
+														)
 													: "N/A"}
 											</span>
 										</td>
@@ -911,7 +911,7 @@ const ManageProducts = () => {
 															onClick={() =>
 																handleToggleStatus(
 																	product.product_id,
-																	product.status
+																	product.status,
 																)
 															}
 															className={`p-2 rounded-lg transition-colors ${
@@ -934,7 +934,7 @@ const ManageProducts = () => {
 														<button
 															onClick={() =>
 																navigate(
-																	`/admin/addormodifyproducts/${product.product_id}`
+																	`/admin/addormodifyproducts/${product.product_id}`,
 																)
 															}
 															className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -1054,7 +1054,7 @@ const ManageProducts = () => {
 								<option value="20">20</option>
 								<option value="50">50</option>
 							</select>
-						</div>
+						</div> 
 
 						<div className="flex items-center gap-2">
 							<button
@@ -1094,8 +1094,8 @@ const ManageProducts = () => {
 											page === currentPage
 												? "bg-blue-800 text-white"
 												: page === "..."
-												? "text-gray-500 cursor-default"
-												: "text-gray-700 hover:bg-gray-100"
+													? "text-gray-500 cursor-default"
+													: "text-gray-700 hover:bg-gray-100"
 										}`}
 										disabled={page === "..." || loading}
 									>
@@ -1197,8 +1197,8 @@ const ManageProducts = () => {
 									{loading
 										? "Deleting..."
 										: permanentDelete
-										? "Delete Permanently"
-										: "Soft Delete"}
+											? "Delete Permanently"
+											: "Soft Delete"}
 								</button>
 							</div>
 						</div>

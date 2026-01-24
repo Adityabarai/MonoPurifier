@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 
@@ -25,13 +25,7 @@ const AddOrModifyProduct = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
 
-	useEffect(() => {
-		if (isEditMode) {
-			fetchProduct();
-		}
-	}, [id]); // Only depend on id
-
-	const fetchProduct = async () => {
+	const fetchProduct = useCallback(async () => {
 		try {
 			setLoading(true);
 			const response = await axios.get(
@@ -43,7 +37,13 @@ const AddOrModifyProduct = () => {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [id]);
+
+	useEffect(() => {
+		if (isEditMode) {
+			fetchProduct();
+		}
+	}, [isEditMode, fetchProduct]);
 
 	const handleChange = (e) => {
 		const { name, value } = e.target;
@@ -58,6 +58,7 @@ const AddOrModifyProduct = () => {
 		setError("");
 		setLoading(true);
 
+		// Validate required fields
 		if (!formData.name || !formData.category || !formData.price) {
 			setError("Name, category, and price are required fields");
 			setLoading(false);
@@ -152,6 +153,7 @@ const AddOrModifyProduct = () => {
 		<div className="min-h-screen bg-background-light py-8 px-4 sm:px-6 lg:px-8">
 			<div className="max-w-3xl mx-auto">
 				<div className="bg-white rounded-lg shadow-lg p-6 sm:p-8 animate-fade-in">
+					{/* Header */}
 					<div className="mb-6">
 						<h2 className="text-3xl font-bold text-text-primary">
 							{isEditMode ? "Edit Product" : "Add New Product"}
@@ -163,6 +165,7 @@ const AddOrModifyProduct = () => {
 						</p>
 					</div>
 
+					{/* Error Message */}
 					{error && (
 						<div className="mb-6 bg-red-50 border-l-4 border-danger p-4 rounded animate-slide-up">
 							<div className="flex">
@@ -186,7 +189,9 @@ const AddOrModifyProduct = () => {
 						</div>
 					)}
 
+					{/* Form */}
 					<form onSubmit={handleSubmit} className="space-y-6">
+						{/* Product Name */}
 						<div>
 							<label
 								htmlFor="name"
@@ -206,6 +211,7 @@ const AddOrModifyProduct = () => {
 							/>
 						</div>
 
+						{/* Category */}
 						<div>
 							<label
 								htmlFor="category"
@@ -225,6 +231,7 @@ const AddOrModifyProduct = () => {
 							/>
 						</div>
 
+						{/* Price Row */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 							<div>
 								<label
@@ -264,6 +271,7 @@ const AddOrModifyProduct = () => {
 							</div>
 						</div>
 
+						{/* Discount & Badge Row */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 							<div>
 								<label
@@ -302,6 +310,7 @@ const AddOrModifyProduct = () => {
 							</div>
 						</div>
 
+						{/* Rating & Reviews Row */}
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 							<div>
 								<label
@@ -343,6 +352,7 @@ const AddOrModifyProduct = () => {
 							</div>
 						</div>
 
+						{/* Capacity */}
 						<div>
 							<label
 								htmlFor="capacity"
@@ -361,6 +371,7 @@ const AddOrModifyProduct = () => {
 							/>
 						</div>
 
+						{/* Technology */}
 						<div>
 							<label
 								htmlFor="technology"
@@ -379,6 +390,7 @@ const AddOrModifyProduct = () => {
 							/>
 						</div>
 
+						{/* Image URL */}
 						<div>
 							<label
 								htmlFor="image_url"
@@ -397,6 +409,7 @@ const AddOrModifyProduct = () => {
 							/>
 						</div>
 
+						{/* Description */}
 						<div>
 							<label
 								htmlFor="description"
@@ -415,6 +428,7 @@ const AddOrModifyProduct = () => {
 							/>
 						</div>
 
+						{/* Form Actions */}
 						<div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border-light">
 							<button
 								type="button"
