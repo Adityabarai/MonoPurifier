@@ -1,15 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Navbar() {
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [activeDropdown, setActiveDropdown] = useState(null);
 
+	// ====== SCROLL HIDE/SHOW STATES ======
+	const [showNavbar, setShowNavbar] = useState(true);
+	const [lastScrollY, setLastScrollY] = useState(0);
+	// ====================================
+
 	const toggleDropdown = (dropdown) => {
 		setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
 	};
 
+	// ====== SCROLL HIDE/SHOW LOGIC ======
+	useEffect(() => {
+		const handleScroll = () => {
+			const currentScrollY = window.scrollY;
+
+			if (currentScrollY > lastScrollY && currentScrollY > 60) {
+				// scrolling down
+				setShowNavbar(false);
+			} else {
+				// scrolling up
+				setShowNavbar(true);
+			}
+
+			setLastScrollY(currentScrollY);
+		};
+
+		window.addEventListener("scroll", handleScroll);
+		return () => window.removeEventListener("scroll", handleScroll);
+	}, [lastScrollY]);
+	// ====================================
+
 	return (
-		<nav className="bg-white shadow-md sticky top-0 z-50">
+		<nav
+			className={`bg-white shadow-md sticky top-0 z-50 transition-transform duration-300 ${
+				showNavbar ? "translate-y-0" : "-translate-y-full"
+			}`}
+		>
 			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex justify-between items-center h-16">
 					{/* Logo */}
@@ -34,6 +64,7 @@ function Navbar() {
 						>
 							About
 						</a>
+
 						{/* Products Dropdown */}
 						<div className="relative">
 							<button
@@ -265,4 +296,5 @@ function Navbar() {
 		</nav>
 	);
 }
-export default Navbar
+
+export default Navbar;
