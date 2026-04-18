@@ -3,17 +3,15 @@ const router = express.Router();
 const productController = require("../controllers/productController");
 const { verifyToken } = require("../middleware/auth");
 
-// Public routes (no authentication required)
+// Public routes
 router.get("/", productController.getAllProducts);
 router.get("/:id", productController.getProductById);
 
-// Protected routes (require authentication)
-router.post("/", verifyToken, productController.createProduct);
-router.put("/:id", verifyToken, productController.updateProduct);
-router.delete("/:id", verifyToken, productController.deleteProduct);
-router.delete("/", verifyToken, productController.bulkDeleteProducts);
+// ✅ Single route for Create + Update
+router.post("/save", verifyToken, productController.addOrModifyProduct);
 
-// New routes for status and restore functionality
-router.patch("/:id/status", verifyToken, productController.ProductStatus);
+// Delete routes
+router.delete("/:id", verifyToken, productController.deleteProduct);
+router.post("/bulk-delete", verifyToken, productController.bulkDeleteProducts);
 
 module.exports = router;

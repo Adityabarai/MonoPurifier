@@ -6,8 +6,7 @@ const adminRoutes = require("./routes/AdminRoute");
 const productRoutes = require("./routes/ProductRoute");
 
 const app = express();
-
-// ✅ Fixed CORS
+ 
 app.use(cors({
   origin: [
     "https://mono-purifier.vercel.app",

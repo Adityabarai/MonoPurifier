@@ -741,172 +741,234 @@ const ManageProducts = () => {
 									</th>
 								</tr>
 							</thead>
-							<tbody className="divide-y divide-gray-200">
-								{currentItems.map((product) => (
-									<tr
-										key={product.product_id}
-										className={`hover:bg-gray-50 ${
-											selectedProducts.includes(product.product_id)
-												? "bg-blue-50"
-												: ""
-										} ${product.is_deleted === 1 ? "bg-red-50" : ""}`}
-									>
-										<td className="py-4 px-4">
-											<span className="text-gray-600 text-sm">
-												{product.reviews_count || 0}
-											</span>
-										</td>
-										<td className="py-4 px-4">
-											<div className="font-semibold text-gray-900">
-												{formatCurrency(product.price)}
-											</div>
-										</td>
-										<td className="py-4 px-4">
-											{product.original_price > product.price ? (
-												<div className="text-gray-500 text-sm line-through">
-													{formatCurrency(product.original_price)}
-												</div>
-											) : (
-												<span className="text-gray-400 text-xs">—</span>
-											)}
-										</td>
-										<td className="py-4 px-4">
-											{product.discount_amount > 0 ? (
-												<div className="flex flex-col gap-1">
-													<span className="text-red-600 text-sm font-medium">
-														-{formatCurrency(product.discount_amount)}
-													</span>
-													<span className="text-xs bg-red-100 text-red-800 px-1.5 py-0.5 rounded">
-														-
-														{calculateDiscountPercentage(
-															product.original_price,
-															product.price,
-														)}
-														%
-													</span>
-												</div>
-											) : (
-												<span className="text-gray-400 text-xs">—</span>
-											)}
-										</td>
-										<td className="py-4 px-4">
-											<span className="text-gray-600 text-sm">
-												{product.capacity}
-											</span>
-										</td>
-										<td className="py-4 px-4">
-											<div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
-												{product.image_url ? (
-													<img
-														src={product.image_url}
-														alt={product.name}
-														className="w-full h-full object-cover"
-														onError={(e) => {
-															e.target.style.display = "none";
-															e.target.parentElement.innerHTML =
-																'<div class="text-gray-400"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z"/></svg></div>';
-														}}
-													/>
-												) : (
-													<FaImage className="text-gray-400" />
-												)}
-											</div>
-										</td>
-										<td className="py-4 px-4">
-											<span className="text-gray-600 text-sm">
-												{product.technology || "—"}
-											</span>
-										</td>
-										<td className="py-4 px-4 max-w-xs">
-											<span className="text-gray-600 text-sm line-clamp-2">
-												{product.description || "—"}
-											</span>
-										</td>
-										<td className="py-4 px-4">
-											<span className="text-gray-500 text-xs">
-												{product.created_at
-													? new Date(product.created_at).toLocaleDateString(
-															"en-IN",
-															{
-																day: "2-digit",
-																month: "short",
-																year: "numeric",
-															},
-														)
-													: "N/A"}
-											</span>
-										</td>
-										<td className="py-4 px-4">
-											<div className="flex items-center gap-2">
-												{product.is_deleted === 0 ? (
-													<>
-														<button
-															onClick={() =>
-																handleToggleStatus(
-																	product.product_id,
-																	product.status,
-																)
-															}
-															className={`p-2 rounded-lg transition-colors ${
-																product.status === 1
-																	? "text-gray-600 hover:bg-gray-100"
-																	: "text-green-600 hover:bg-green-50"
-															}`}
-															title={
-																product.status === 1 ? "Deactivate" : "Activate"
-															}
-															disabled={loading}
-														>
-															{product.status === 1 ? (
-																<FaPowerOff />
-															) : (
-																<FaPlay />
-															)}
-														</button>
+						<tbody className="divide-y divide-gray-200">
+  {currentItems.map((product) => (
+    <tr
+      key={product.product_id}
+      className={`hover:bg-gray-50 ${
+        selectedProducts.includes(product.product_id) ? "bg-blue-50" : ""
+      } ${product.is_deleted === 1 ? "bg-red-50" : ""}`}
+    >
+      {/* Checkbox */}
+      <td className="py-4 px-4">
+        <input
+          type="checkbox"
+          checked={selectedProducts.includes(product.product_id)}
+          onChange={() => handleSelectProduct(product.product_id)}
+          className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+          disabled={loading}
+        />
+      </td>
 
-														<button
-															onClick={() =>
-																navigate(
-																	`/admin/addormodifyproducts/${product.product_id}`,
-																)
-															}
-															className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-															title="Edit"
-															disabled={loading}
-														>
-															<FaEdit />
-														</button>
-													</>
-												) : (
-													<button
-														onClick={() => {
-															setSelectedProduct(product);
-															setShowRestoreModal(true);
-														}}
-														className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-														title="Restore"
-														disabled={loading}
-													>
-														<FaUndo />
-													</button>
-												)}
+      {/* ID */}
+      <td className="py-4 px-4">
+        <span className="text-gray-700 text-sm font-medium">
+          {product.product_id}
+        </span>
+      </td>
 
-												<button
-													onClick={() => {
-														setSelectedProduct(product);
-														setShowDeleteModal(true);
-													}}
-													className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-													title="Delete"
-													disabled={loading}
-												>
-													<FaTrash />
-												</button>
-											</div>
-										</td>
-									</tr>
-								))}
-							</tbody>
+      {/* Name */}
+      <td className="py-4 px-4">
+        <div className="font-semibold text-gray-900 max-w-[150px] truncate">
+          {product.name}
+        </div>
+      </td>
+
+      {/* Status */}
+      <td className="py-4 px-4">
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${
+            product.status === 1
+              ? "bg-green-100 text-green-700"
+              : "bg-gray-100 text-gray-600"
+          }`}
+        >
+          {product.status === 1 ? "Active" : "Inactive"}
+        </span>
+      </td>
+
+      {/* Category */}
+      <td className="py-4 px-4">
+        <span className="text-gray-600 text-sm">{product.category}</span>
+      </td>
+
+      {/* Badge */}
+      <td className="py-4 px-4">
+        {product.badge ? (
+          <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+            {product.badge}
+          </span>
+        ) : (
+          <span className="text-gray-400 text-xs">—</span>
+        )}
+      </td>
+
+      {/* Rating */}
+      <td className="py-4 px-4">
+        <div className="flex items-center gap-1">
+          <FaStar className="text-yellow-400 text-xs" />
+          <span className="text-gray-700 text-sm">
+            {product.rating ? product.rating.toFixed(1) : "—"}
+          </span>
+        </div>
+      </td>
+
+      {/* Reviews */}
+      <td className="py-4 px-4">
+        <span className="text-gray-600 text-sm">
+          {product.reviews_count || 0}
+        </span>
+      </td>
+
+      {/* Price */}
+      <td className="py-4 px-4">
+        <div className="font-semibold text-gray-900">
+          {formatCurrency(product.price)}
+        </div>
+      </td>
+
+      {/* Original Price */}
+      <td className="py-4 px-4">
+        {product.original_price > product.price ? (
+          <div className="text-gray-500 text-sm line-through">
+            {formatCurrency(product.original_price)}
+          </div>
+        ) : (
+          <span className="text-gray-400 text-xs">—</span>
+        )}
+      </td>
+
+      {/* Discount */}
+      <td className="py-4 px-4">
+        {product.discount_amount > 0 ? (
+          <div className="flex flex-col gap-1">
+            <span className="text-red-600 text-sm font-medium">
+              -{formatCurrency(product.discount_amount)}
+            </span>
+            <span className="text-xs bg-red-100 text-red-800 px-1.5 py-0.5 rounded">
+              -{calculateDiscountPercentage(product.original_price, product.price)}%
+            </span>
+          </div>
+        ) : (
+          <span className="text-gray-400 text-xs">—</span>
+        )}
+      </td>
+
+      {/* Capacity */}
+      <td className="py-4 px-4">
+        <span className="text-gray-600 text-sm">
+          {product.capacity || "—"}
+        </span>
+      </td>
+
+      {/* Image */}
+      <td className="py-4 px-4">
+        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center overflow-hidden">
+          {product.image_url ? (
+            <img
+              src={product.image_url}
+              alt={product.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.style.display = "none";
+                e.target.parentElement.innerHTML =
+                  '<div class="text-gray-400 text-xs text-center">No img</div>';
+              }}
+            />
+          ) : (
+            <FaImage className="text-gray-400" />
+          )}
+        </div>
+      </td>
+
+      {/* Technology */}
+      <td className="py-4 px-4">
+        <span className="text-gray-600 text-sm">
+          {product.technology || "—"}
+        </span>
+      </td>
+
+      {/* Description */}
+      <td className="py-4 px-4 max-w-xs">
+        <span className="text-gray-600 text-sm line-clamp-2">
+          {product.description || "—"}
+        </span>
+      </td>
+
+      {/* Created At */}
+      <td className="py-4 px-4">
+        <span className="text-gray-500 text-xs">
+          {product.created_at
+            ? new Date(product.created_at).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
+            : "N/A"}
+        </span>
+      </td>
+
+      {/* Actions */}
+      <td className="py-4 px-4">
+        <div className="flex items-center gap-2">
+          {product.is_deleted === 0 ? (
+            <>
+              <button
+                onClick={() =>
+                  handleToggleStatus(product.product_id, product.status)
+                }
+                className={`p-2 rounded-lg transition-colors ${
+                  product.status === 1
+                    ? "text-gray-600 hover:bg-gray-100"
+                    : "text-green-600 hover:bg-green-50"
+                }`}
+                title={product.status === 1 ? "Deactivate" : "Activate"}
+                disabled={loading}
+              >
+                {product.status === 1 ? <FaPowerOff /> : <FaPlay />}
+              </button>
+
+              <button
+                onClick={() =>
+                  navigate(`/admin/addormodifyproducts/${product.product_id}`)
+                }
+                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                title="Edit"
+                disabled={loading}
+              >
+                <FaEdit />
+              </button>
+            </>
+          ) : (
+            <button
+              onClick={() => {
+                setSelectedProduct(product);
+                setShowRestoreModal(true);
+              }}
+              className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+              title="Restore"
+              disabled={loading}
+            >
+              <FaUndo />
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              setSelectedProduct(product);
+              setShowDeleteModal(true);
+            }}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+            title="Delete"
+            disabled={loading}
+          >
+            <FaTrash />
+          </button>
+        </div>
+      </td>
+    </tr>
+  ))}
+</tbody>
 						</table>
 					</div>
 				)}
