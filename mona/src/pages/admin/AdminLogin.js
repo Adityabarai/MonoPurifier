@@ -22,31 +22,44 @@ const AdminLogin = () => {
 		}));
 		if (error) setError("");
 	};
+ 
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
 
-	const handleSubmit = async (e) => {
-		e.preventDefault();
-		setError("");
-		if (!formData.username.trim() || !formData.password.trim()) {
-			setError("Please enter both username and password");
-			return;
-		}
-		setLoading(true);
-		const response = await axios.post("http://localhost:5000/api/admin/login", {
-			username: formData.username,
-			password: formData.password,
-		});
-		const storage = formData.rememberMe ? localStorage : sessionStorage;
-		storage.setItem("adminUser", JSON.stringify(response.data.admin));
-		storage.setItem("adminToken", response.data.token);
-		if (formData.rememberMe) {
-			sessionStorage.removeItem("adminUser");
-			sessionStorage.removeItem("adminToken");
-		} else {
-			localStorage.removeItem("adminUser");
-			localStorage.removeItem("adminToken");
-		}
-		navigate("/admin/dashboard", { replace: true });
-	};
+  if (!formData.username.trim() || !formData.password.trim()) {
+    setError("Please enter both username and password");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    const response = await axios.post("https://mono-purifier.vercel.app/api/admin/login", {
+      username: formData.username,
+      password: formData.password,
+    });
+
+    const storage = formData.rememberMe ? localStorage : sessionStorage;
+    storage.setItem("adminUser", JSON.stringify(response.data.admin));
+    storage.setItem("adminToken", response.data.token);
+
+    // Clear the other storage
+    if (formData.rememberMe) {
+      sessionStorage.removeItem("adminUser");
+      sessionStorage.removeItem("adminToken");
+    } else {
+      localStorage.removeItem("adminUser");
+      localStorage.removeItem("adminToken");
+    }
+
+    navigate("/admin/dashboard", { replace: true });
+
+  } catch (err) {
+    setError(err.response?.data?.message || "Login failed. Please try again.");
+  } finally {
+    setLoading(false); // ✅ Always stop loading
+  }
+};
 	return (
 		<div className="min-h-screen flex items-center justify-center px-4 bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100">
 			<div className="w-full max-w-5xl bg-white/70 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden grid md:grid-cols-2 border border-white/40">
