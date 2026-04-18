@@ -121,3 +121,32 @@ exports.bulkDeleteProducts = async (req, res) => {
     res.status(500).json({ message: "Error deleting products", error: error.message });
   }
 };
+
+exports.uploadImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No image file provided" });
+    }
+
+    const file = req.file;
+    const fileName = `products/${Date.now()}_${file.originalname.replace(/\s/g, "_")}`;
+
+    const { data, error } = await supabase.storage
+      .from("product-images")     
+      .upload(fileName, file.buffer, {
+        contentType: file.mimetype,
+        upsert: false,
+      });
+
+    if (error) throw error;
+
+    const { data: urlData } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(fileName);
+
+    res.json({ image_url: urlData.publicUrl });
+  } catch (error) {
+    console.error("Error uploading image:", error);
+    res.status(500).json({ message: "Error uploading image", error: error.message });
+  }
+};
