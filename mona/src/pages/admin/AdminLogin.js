@@ -34,7 +34,7 @@ const handleSubmit = async (e) => {
 
   setLoading(true);
   try {
-    const response = await axios.post("https://mono-purifier.vercel.app/api/admin/login", {
+    const response = await axios.post("https://monopurifier.onrender.com/api/admin/login", {
       username: formData.username,
       password: formData.password,
     });
