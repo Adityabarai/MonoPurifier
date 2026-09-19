@@ -14,10 +14,11 @@ import {
   FaMicrochip,
   FaCheck,
 } from "react-icons/fa";
-import { getProducts, submitLead, SERVER_URL } from "../../services/api";
+import { getProducts, submitLead, getHeroImage, SERVER_URL } from "../../services/api";
 
 const Home = () => {
   const [dynamicProducts, setDynamicProducts] = useState([]);
+  const [heroImage, setHeroImage] = useState("/products/aquapure_copper_plus.png");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [activeStage, setActiveStage] = useState(0);
   const [activeFaq, setActiveFaq] = useState(null);
@@ -29,6 +30,14 @@ const Home = () => {
     address: "",
     model: "",
   });
+
+  // Helper to resolve hero section image URL
+  const resolveHeroImageUrl = (url) => {
+    if (!url) return "/products/aquapure_copper_plus.png";
+    if (url.startsWith("http://") || url.startsWith("https://")) return url;
+    if (url.startsWith("/uploads/")) return `${SERVER_URL}${url}`;
+    return url;
+  };
 
   const getProductImage = (p) => {
     if (!p) return "/products/aquapure_ro_elite.png";
@@ -66,6 +75,19 @@ const Home = () => {
       })
       .catch((err) =>
         console.log("Using default fallback products:", err.message)
+      );
+  }, []);
+
+  // Fetch dynamic hero section image
+  useEffect(() => {
+    getHeroImage()
+      .then((res) => {
+        if (res && res.image_url) {
+          setHeroImage(res.image_url);
+        }
+      })
+      .catch((err) =>
+        console.log("Using default hero image:", err.message)
       );
   }, []);
 
@@ -411,9 +433,12 @@ const Home = () => {
                   {/* Purifier Hero Graphic */}
                   <div className="h-72 rounded-2xl bg-white flex items-center justify-center relative p-3 mb-6 group overflow-hidden border border-slate-100 shadow-sm">
                     <img
-                      src="/products/aquapure_copper_plus.png"
+                      src={resolveHeroImageUrl(heroImage)}
                       alt="AquaPure Copper+ Alkaline Flagship"
                       className="max-h-full max-w-full object-contain transform group-hover:scale-105 transition-transform duration-300 drop-shadow-xl"
+                      onError={(e) => {
+                        e.target.src = "/products/aquapure_copper_plus.png";
+                      }}
                     />
 
                     {/* Floating Spec Tags */}

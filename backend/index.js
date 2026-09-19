@@ -6,6 +6,7 @@ const path = require("path");
 const adminRoutes = require("./routes/AdminRoute");
 const productRoutes = require("./routes/ProductRoute");
 const leadRoutes = require("./routes/LeadRoute");
+const settingsRoutes = require("./routes/SettingsRoute");
 
 const app = express();
 
@@ -54,6 +55,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/admin", adminRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/leads", leadRoutes);
+app.use("/api/settings", settingsRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

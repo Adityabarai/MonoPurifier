@@ -9,6 +9,7 @@ import ManageProducts from "./pages/admin/ManageProducts";
 import AddOrModifyProduct from "./pages/admin/AddOrModifyProduct";
 import ManageLeads from "./pages/admin/ManageLeads";
 import AdminSettings from "./pages/admin/AdminSettings";
+import ManageHeroImage from "./pages/admin/ManageHeroImage";
 import ProtectedRoute from "./pages/Common/ProtectedRoute";
 
 function App() {
@@ -43,6 +44,8 @@ function App() {
 						<Route path="/admin/manageproducts" element={<ManageProducts />} />
 						<Route path="/admin/addormodifyproducts/:id?" element={<AddOrModifyProduct />}/>
 						<Route path="/admin/leads" element={<ManageLeads />} />
+						<Route path="/admin/home-image" element={<ManageHeroImage />} />
+						<Route path="/admin/hero-image" element={<ManageHeroImage />} />
 						<Route path="/admin/settings" element={<AdminSettings />} />
 					</Route>
 				</Route>

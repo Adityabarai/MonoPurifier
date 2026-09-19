@@ -12,6 +12,7 @@ import {
   FaSearch,
   FaExclamationCircle,
   FaServer,
+  FaImage,
 } from "react-icons/fa";
 import { getProducts, getLeads } from "../../services/api";
 
@@ -283,6 +284,34 @@ const AdminDashboard = () => {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* Storefront Hero Section Quick Banner */}
+      <div className="bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-md shadow-sky-500/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center shrink-0 border border-white/20">
+            <FaImage className="text-2xl text-white" />
+          </div>
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[10px] font-extrabold uppercase tracking-wide mb-1">
+              <span>Homepage Hero Showcase</span>
+            </div>
+            <h3 className="text-base font-bold text-white">
+              Home Page Main Section Image
+            </h3>
+            <p className="text-xs text-sky-100 mt-0.5">
+              Customize or replace the flagship purifier spotlight image on your storefront hero banner.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          to="/admin/home-image"
+          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-sky-50 text-sky-700 font-bold text-xs uppercase tracking-wider rounded-xl shadow-sm transition whitespace-nowrap self-start sm:self-auto"
+        >
+          <span>Update Hero Image</span>
+          <FaArrowRight className="text-xs" />
+        </Link>
       </div>
 
       {/* Main Content Grid: Recent Inquiries Feed (left) & Purifier Tech + System Telemetry (right) */}

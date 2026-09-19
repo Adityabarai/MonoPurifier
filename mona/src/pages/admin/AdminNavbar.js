@@ -16,6 +16,7 @@ import {
   FaCheckCircle,
   FaExternalLinkAlt,
   FaUserShield,
+  FaImage,
 } from "react-icons/fa";
 import { HiOutlineSquares2X2 } from "react-icons/hi2";
 import { getLeads } from "../../services/api";
@@ -153,6 +154,18 @@ const AdminNavbar = () => {
       ],
     },
     {
+      label: "STOREFRONT / HOME",
+      items: [
+        {
+          name: "Home Main Image",
+          path: "/admin/home-image",
+          icon: <FaImage className="text-base" />,
+          badge: "Hero",
+          badgeColor: "bg-sky-100 text-sky-700 border-sky-200",
+        },
+      ],
+    },
+    {
       label: "SYSTEM",
       items: [
         {
@@ -168,6 +181,7 @@ const AdminNavbar = () => {
   // Helper to determine current breadcrumb text
   const getBreadcrumb = () => {
     const p = location.pathname;
+    if (p.includes("home-image") || p.includes("hero-image")) return "Storefront / Home Main Section Image";
     if (p.includes("manageproducts")) return "Catalog / All Products";
     if (p.includes("addormodifyproducts")) return "Catalog / Add Product";
     if (p.includes("leads")) return "CRM / Customer Inquiries & Demos";

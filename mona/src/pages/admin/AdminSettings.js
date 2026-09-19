@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   FaCog,
   FaShieldAlt,
@@ -8,6 +9,8 @@ import {
   FaMapMarkerAlt,
   FaCheckCircle,
   FaDatabase,
+  FaImage,
+  FaArrowRight,
 } from "react-icons/fa";
 
 const AdminSettings = () => {
@@ -237,6 +240,32 @@ const AdminSettings = () => {
 
         {/* Right 1 Col: Engine Status & Security Cards */}
         <div className="space-y-6">
+          {/* Storefront Hero Image Quick Card */}
+          <div className="bg-gradient-to-br from-sky-500 to-blue-600 text-white rounded-2xl p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="p-2 bg-white/20 text-white rounded-lg">
+                  <FaImage className="text-sm" />
+                </span>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+                  Home Main Section Image
+                </h3>
+              </div>
+            </div>
+
+            <p className="text-xs text-sky-100 leading-relaxed">
+              Add or update the main hero showcase purifier image featured on your homepage.
+            </p>
+
+            <Link
+              to="/admin/home-image"
+              className="inline-flex items-center justify-center gap-2 w-full py-2.5 bg-white hover:bg-sky-50 text-sky-700 font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-sm"
+            >
+              <span>Manage Main Image</span>
+              <FaArrowRight className="text-xs" />
+            </Link>
+          </div>
+
           {/* Dual-Mode Database Status */}
           <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">

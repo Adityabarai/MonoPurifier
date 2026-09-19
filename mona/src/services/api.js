@@ -92,5 +92,30 @@ export const deleteLead = async (id) => {
   return res.data;
 };
 
+// Home Page Settings API (Hero Section Image)
+export const getHeroImage = async () => {
+  const res = await api.get("/settings/hero-image");
+  return res.data;
+};
+
+export const updateHeroImageUrl = async (imageUrl) => {
+  const res = await api.post("/settings/hero-image", { image_url: imageUrl });
+  return res.data;
+};
+
+export const uploadHeroImageFile = async (file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+  const res = await api.post("/settings/hero-image", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
+};
+
+export const resetHeroImage = async () => {
+  const res = await api.post("/settings/hero-image/reset");
+  return res.data;
+};
+
 export default api;
 
