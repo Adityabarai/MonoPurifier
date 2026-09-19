@@ -1,13 +1,23 @@
 const supabase = require("../config/db");
+const { v4: uuidv4 } = require("uuid");
 
-// ✅ Single function for CREATE and UPDATE
+// Single function for CREATE and UPDATE
 exports.addOrModifyProduct = async (req, res) => {
   try {
     const {
-      product_id,       // if provided → UPDATE, if null/missing → CREATE
-      name, category, badge, rating, reviews_count, price,
-      original_price, discount_amount, capacity, image_url,
-      technology, description,
+      product_id, // if provided → UPDATE, if null/missing → CREATE
+      name,
+      category,
+      badge,
+      rating,
+      reviews_count,
+      price,
+      original_price,
+      discount_amount,
+      capacity,
+      image_url,
+      technology,
+      description,
     } = req.body;
 
     // Validate required fields for CREATE only
@@ -17,11 +27,9 @@ exports.addOrModifyProduct = async (req, res) => {
       });
     }
 
-    const { v4: uuidv4 } = require("uuid");
-
     const { data, error } = await supabase.rpc("add_or_modify_product", {
       p_product_id: product_id ? parseInt(product_id) : null,
-      p_guid: product_id ? null : uuidv4(),   // only needed for create
+      p_guid: product_id ? null : uuidv4(), // only needed for create
       p_name: name || null,
       p_category: category || null,
       p_badge: badge || null,
@@ -43,13 +51,16 @@ exports.addOrModifyProduct = async (req, res) => {
 
     const isUpdate = !!product_id;
     res.status(isUpdate ? 200 : 201).json({
-      message: isUpdate ? "Product updated successfully" : "Product created successfully",
+      message: isUpdate
+        ? "Product updated successfully"
+        : "Product created successfully",
       product: data[0],
     });
-
   } catch (error) {
     console.error("Error in addOrModifyProduct:", error);
-    res.status(500).json({ message: "Error saving product", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error saving product", error: error.message });
   }
 };
 
@@ -64,7 +75,9 @@ exports.getAllProducts = async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error("Error fetching products:", error);
-    res.status(500).json({ message: "Error fetching products", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching products", error: error.message });
   }
 };
 
@@ -82,46 +95,108 @@ exports.getProductById = async (req, res) => {
     res.json(data[0]);
   } catch (error) {
     console.error("Error fetching product:", error);
-    res.status(500).json({ message: "Error fetching product", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching product", error: error.message });
   }
 };
 
-// Soft delete (is_deleted = 1)
+// Delete product (supports soft delete and permanent delete)
 exports.deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
+    const permanent = req.query.permanent === "true";
+
     const { error } = await supabase.rpc("delete_product", {
       p_id: parseInt(id),
+      permanent,
     });
     if (error) throw error;
-    res.json({ message: "Product deleted successfully", is_deleted: 1 });
+
+    res.json({
+      message: permanent
+        ? "Product permanently deleted"
+        : "Product deleted successfully",
+      is_deleted: permanent ? 2 : 1,
+    });
   } catch (error) {
     console.error("Error deleting product:", error);
-    res.status(500).json({ message: "Error deleting product", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error deleting product", error: error.message });
   }
 };
 
-// Bulk soft delete
+// Bulk delete products
 exports.bulkDeleteProducts = async (req, res) => {
   try {
-    const { ids } = req.body;
+    const ids = req.body.ids || req.body.data?.ids;
+    const permanent =
+      req.body.permanent === true || req.body.data?.permanent === true;
+
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return res.status(400).json({ message: "No product IDs provided" });
     }
+
     const { error } = await supabase.rpc("bulk_delete_products", {
       p_ids: ids,
+      permanent,
     });
     if (error) throw error;
+
     res.json({
       message: `${ids.length} product(s) deleted successfully`,
-      is_deleted: 1,
+      is_deleted: permanent ? 2 : 1,
     });
   } catch (error) {
     console.error("Error bulk deleting:", error);
-    res.status(500).json({ message: "Error deleting products", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error deleting products", error: error.message });
   }
 };
 
+// Restore soft-deleted product
+exports.restoreProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { error } = await supabase.rpc("restore_product", {
+      p_id: parseInt(id),
+    });
+    if (error) throw error;
+    res.json({ message: "Product restored successfully", is_deleted: 0 });
+  } catch (error) {
+    console.error("Error restoring product:", error);
+    res
+      .status(500)
+      .json({ message: "Error restoring product", error: error.message });
+  }
+};
+
+// Toggle product active status (1 = Active, 0 = Inactive)
+exports.updateProductStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { action } = req.body;
+    const { error } = await supabase.rpc("update_product_status", {
+      p_id: parseInt(id),
+      action,
+    });
+    if (error) throw error;
+    res.json({
+      message: `Product ${
+        action === "activate" ? "activated" : "deactivated"
+      } successfully`,
+    });
+  } catch (error) {
+    console.error("Error updating product status:", error);
+    res
+      .status(500)
+      .json({ message: "Error updating product status", error: error.message });
+  }
+};
+
+// Upload image
 exports.uploadImage = async (req, res) => {
   try {
     if (!req.file) {
@@ -129,10 +204,13 @@ exports.uploadImage = async (req, res) => {
     }
 
     const file = req.file;
-    const fileName = `products/${Date.now()}_${file.originalname.replace(/\s/g, "_")}`;
+    const fileName = `products/${Date.now()}_${file.originalname.replace(
+      /\s/g,
+      "_"
+    )}`;
 
     const { data, error } = await supabase.storage
-      .from("product-images")     
+      .from("product-images")
       .upload(fileName, file.buffer, {
         contentType: file.mimetype,
         upsert: false,
@@ -147,6 +225,8 @@ exports.uploadImage = async (req, res) => {
     res.json({ image_url: urlData.publicUrl });
   } catch (error) {
     console.error("Error uploading image:", error);
-    res.status(500).json({ message: "Error uploading image", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error uploading image", error: error.message });
   }
 };

@@ -7,6 +7,8 @@ import AdminNavbar from "./pages/admin/AdminNavbar";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageProducts from "./pages/admin/ManageProducts";
 import AddOrModifyProduct from "./pages/admin/AddOrModifyProduct";
+import ManageLeads from "./pages/admin/ManageLeads";
+import AdminSettings from "./pages/admin/AdminSettings";
 import ProtectedRoute from "./pages/Common/ProtectedRoute";
 
 function App() {
@@ -40,7 +42,8 @@ function App() {
 						<Route path="/admin/dashboard" element={<AdminDashboard />} />
 						<Route path="/admin/manageproducts" element={<ManageProducts />} />
 						<Route path="/admin/addormodifyproducts/:id?" element={<AddOrModifyProduct />}/>
-						<Route path="/admin/settings" element={<div>Settings Page</div>} />
+						<Route path="/admin/leads" element={<ManageLeads />} />
+						<Route path="/admin/settings" element={<AdminSettings />} />
 					</Route>
 				</Route>
 

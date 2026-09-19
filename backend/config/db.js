@@ -1,38 +1,27 @@
-const { Pool } = require("pg");
-
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-  connectionTimeoutMillis: 10000,
-});
-
-pool.on("connect", () => {
-  console.log("✅ Connected to Supabase PostgreSQL");
-});
-
-pool.on("error", (err) => {
-  console.error("❌ DB connection error:", err.message);
-});
-
-module.exports = pool;
-
-
 const { createClient } = require("@supabase/supabase-js");
+const localDb = require("./localDb");
 
-console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
-console.log("KEY exists:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+let db;
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+const hasSupabaseCreds =
+  Boolean(process.env.SUPABASE_URL) &&
+  Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY) &&
+  !process.env.SUPABASE_URL.includes("your-project");
 
-console.log("✅ Supabase client initialized");
+if (hasSupabaseCreds) {
+  try {
+    db = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+    console.log("✅ Supabase Cloud client initialized");
+  } catch (err) {
+    console.warn("⚠️ Failed to initialize Supabase, falling back to Local Database:", err.message);
+    db = localDb;
+  }
+} else {
+  console.log("ℹ️ No Supabase credentials found. Running with ✅ Local Database Engine (zero-setup mode)");
+  db = localDb;
+}
 
-module.exports = supabase;
+module.exports = db;

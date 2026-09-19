@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AdityaBarai from "../../assets/image/AdityaBarai.png";
 import { FaLock } from "react-icons/fa";
+import { loginAdmin } from "../../services/api";
 
 const AdminLogin = () => {
 	const [formData, setFormData] = useState({
@@ -34,14 +34,11 @@ const handleSubmit = async (e) => {
 
   setLoading(true);
   try {
-    const response = await axios.post("https://monopurifier.onrender.com/api/admin/login", {
-      username: formData.username,
-      password: formData.password,
-    });
+    const data = await loginAdmin(formData.username, formData.password);
 
     const storage = formData.rememberMe ? localStorage : sessionStorage;
-    storage.setItem("adminUser", JSON.stringify(response.data.admin));
-    storage.setItem("adminToken", response.data.token);
+    storage.setItem("adminUser", JSON.stringify(data.admin));
+    storage.setItem("adminToken", data.token);
 
     // Clear the other storage
     if (formData.rememberMe) {

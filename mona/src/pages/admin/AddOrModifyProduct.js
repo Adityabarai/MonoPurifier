@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
 import { FaUpload, FaImage, FaTimes } from "react-icons/fa";
-
-const API_URL = "https://monopurifier.onrender.com";
+import {
+  getProductById,
+  saveProduct,
+  uploadProductImage,
+  SERVER_URL,
+} from "../../services/api";
 
 const AddOrModifyProduct = () => {
   const navigate = useNavigate();
@@ -42,8 +45,7 @@ const AddOrModifyProduct = () => {
   const fetchProduct = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/api/products/${id}`);
-      const product = response.data;
+      const product = await getProductById(id);
       setFormData({
         name: product.name || "",
         category: product.category || "",
@@ -59,7 +61,12 @@ const AddOrModifyProduct = () => {
       });
       if (product.image_url) {
         setExistingImageUrl(product.image_url);
-        setImagePreview(product.image_url);
+        const resolved = product.image_url.startsWith("http")
+          ? product.image_url
+          : product.image_url.startsWith("/uploads/")
+          ? `${SERVER_URL}${product.image_url}`
+          : product.image_url;
+        setImagePreview(resolved);
       }
     } catch (err) {
       setError("Failed to load product data");
@@ -109,28 +116,6 @@ const AddOrModifyProduct = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Upload image to Supabase Storage
-  const uploadImage = async (file) => {
-    const formDataUpload = new FormData();
-    formDataUpload.append("image", file);
-
-    const token =
-      localStorage.getItem("adminToken") ||
-      sessionStorage.getItem("adminToken");
-
-    const response = await axios.post(
-      `${API_URL}/api/products/upload-image`,
-      formDataUpload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-    return response.data.image_url;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -142,14 +127,11 @@ const AddOrModifyProduct = () => {
 
     setLoading(true);
     try {
-      const token =
-        localStorage.getItem("adminToken") ||
-        sessionStorage.getItem("adminToken");
-
       // Upload image if new file selected
       let image_url = existingImageUrl;
       if (imageFile) {
-        image_url = await uploadImage(imageFile);
+        const uploadRes = await uploadProductImage(imageFile);
+        image_url = uploadRes.image_url;
       }
 
       const productData = {
@@ -163,12 +145,7 @@ const AddOrModifyProduct = () => {
         discount_amount: formData.discount_amount ? parseInt(formData.discount_amount) : null,
       };
 
-      await axios.post(`${API_URL}/api/products/save`, productData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await saveProduct(productData);
 
       navigate("/admin/manageproducts", {
         state: {

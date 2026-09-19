@@ -1,1212 +1,1195 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import {
+  FaTint,
+  FaShieldAlt,
+  FaCheckCircle,
+  FaStar,
+  FaCalendarCheck,
+  FaArrowRight,
+  FaChevronDown,
+  FaFlask,
+  FaHeartbeat,
+  FaAward,
+  FaTruck,
+  FaMicrochip,
+  FaCheck,
+} from "react-icons/fa";
+import { getProducts, submitLead, SERVER_URL } from "../../services/api";
 
 const Home = () => {
-	const [currentSlide, setCurrentSlide] = useState(0);
-	const [cart, setCart] = useState({});
-	const [activeTab, setActiveTab] = useState("basic");
-	const [activeFaq, setActiveFaq] = useState(null);
-	const [formData, setFormData] = useState({
-		name: "",
-		phone: "",
-		address: "",
-		model: ""
-	});
+  const [dynamicProducts, setDynamicProducts] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [activeStage, setActiveStage] = useState(0);
+  const [activeFaq, setActiveFaq] = useState(null);
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formSuccess, setFormSuccess] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    address: "",
+    model: "",
+  });
 
-	const slides = [
-		{
-			id: 1,
-			title: "Pure Water, Healthy Life",
-			subtitle: "Advanced RO Water Purification Technology",
-			description: "Get crystal clear, safe drinking water for your family",
-			cta: "Explore RO Purifiers",
-			bgColor: "from-sky-400 to-sky-600",
-			image: "💧",
-		},
-		{
-			id: 2,
-			title: "UV Purification Excellence",
-			subtitle: "Kill 99.9% Germs & Bacteria",
-			description: "Protect your family with advanced UV technology",
-			cta: "View UV Models",
-			bgColor: "from-blue-400 to-blue-600",
-			image: "🌊",
-		},
-		{
-			id: 3,
-			title: "Professional Installation",
-			subtitle: "Expert Service at Your Doorstep",
-			description: "Free installation with every purchase",
-			cta: "Book Demo",
-			bgColor: "from-red-500 to-red-600",
-			image: "🔧",
-		},
-		{
-			id: 4,
-			title: "Annual Maintenance",
-			subtitle: "Keep Your Purifier Running Smoothly",
-			description: "Hassle-free AMC plans starting at ₹999/year",
-			cta: "View Plans",
-			bgColor: "from-slate-700 to-slate-900",
-			image: "⚙️",
-		},
-	];
+  const getProductImage = (p) => {
+    if (!p) return "/products/aquapure_ro_elite.png";
+    const name = (p.name || "").toLowerCase();
+    if (name.includes("copper")) return "/products/aquapure_copper_plus.png";
+    if (name.includes("uv pro") || name.includes("uv")) return "/products/aquapure_uv_pro.png";
+    if (name.includes("compact")) return "/products/aquapure_compact.png";
+    if (name.includes("alkaline")) return "/products/aquapure_alkaline_max.png";
+    if (name.includes("basic")) return "/products/aquapure_basic.png";
+    if (name.includes("elite") || name.includes("ro")) return "/products/aquapure_ro_elite.png";
 
-	useEffect(() => {
-		const timer = setInterval(() => {
-			setCurrentSlide((prev) => (prev + 1) % slides.length);
-		}, 5000);
+    if (p.image_url && p.image_url.startsWith("http")) return p.image_url;
+    if (p.image_url && p.image_url.startsWith("/uploads/")) {
+      return `${SERVER_URL}${p.image_url}`;
+    }
+    return "/products/aquapure_ro_elite.png";
+  };
 
-		return () => clearInterval(timer);
-	}, [slides.length]);
+  // Fetch real-time products from API
+  useEffect(() => {
+    getProducts()
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDynamicProducts(data);
+        }
+      })
+      .catch((err) =>
+        console.log("Using default fallback products:", err.message)
+      );
+  }, []);
 
-	const goToSlide = (index) => {
-		setCurrentSlide(index);
-	};
+  const defaultProducts = [
+    {
+      id: 1,
+      name: "AquaPure RO Elite",
+      category: "RO Purifier",
+      price: 12999,
+      original_price: 16999,
+      badge: "Best Seller",
+      rating: 4.8,
+      reviews_count: 340,
+      capacity: "10L Storage Tank",
+      technology: "7-Stage RO + UV + UF + TDS",
+      description: "Premium 7-stage RO purifier with smart LED display and active copper technology for clean, healthy drinking water.",
+      features: [
+        "7-Stage Advanced Filtration",
+        "0.0001 Micron RO Membrane",
+        "Smart LED TDS & Filter Indicator",
+        "Free Doorstep Installation",
+      ],
+      image_url: "/uploads/products/aquapure_ro_elite.png",
+      image: "💧",
+    },
+    {
+      id: 2,
+      name: "AquaPure Copper+ Alkaline",
+      category: "Alkaline RO",
+      price: 15999,
+      original_price: 19999,
+      badge: "Doctor Recommended",
+      rating: 4.9,
+      reviews_count: 512,
+      capacity: "12L Storage",
+      technology: "RO + UV + Copper + Alkaline",
+      description: "Infuses health benefits of copper and alkaline minerals into pure RO water for enhanced digestion and immunity.",
+      features: [
+        "pH 8.5+ Bio-Alkaline Balance",
+        "99.9% Pure Active Copper Infusion",
+        "UV-C In-Tank Sterilizer",
+        "Stainless Steel Tank",
+      ],
+      image_url: "/uploads/products/aquapure_copper_plus.png",
+      image: "✨",
+    },
+    {
+      id: 3,
+      name: "AquaPure UV Pro",
+      category: "UV Purifier",
+      price: 8999,
+      original_price: 11999,
+      badge: "Popular",
+      rating: 4.6,
+      reviews_count: 220,
+      capacity: "8L Capacity",
+      technology: "UV + UF Technology",
+      description: "Energy efficient UV + UF purifier kills 99.9% germs and bacteria with auto shut-off function.",
+      features: [
+        "Dual Stage UV + Ultra Filtration",
+        "High-Flow Zero Water Wastage",
+        "Auto Shut-off Sensor",
+        "Ideal for Municipal Water",
+      ],
+      image_url: "/uploads/products/aquapure_uv_pro.png",
+      image: "🌊",
+    },
+    {
+      id: 4,
+      name: "AquaPure Compact Wall Mount",
+      category: "Wall Mount RO",
+      price: 9999,
+      original_price: 12999,
+      badge: "Space Saver",
+      rating: 4.5,
+      reviews_count: 180,
+      capacity: "6L Tank",
+      technology: "6-Stage Compact RO",
+      description: "Space saving sleek wall-mount design with 6-stage purification, perfect for modern compact modular kitchens.",
+      features: [
+        "Ultra-Slim Wall-Mount Profile",
+        "6-Stage Multi-Filtration",
+        "Transparent Water Level Window",
+        "Low Power Consumption",
+      ],
+      image_url: "/uploads/products/aquapure_compact.png",
+      image: "🏡",
+    },
+    {
+      id: 5,
+      name: "AquaPure Alkaline Max",
+      category: "Alkaline RO",
+      price: 18999,
+      original_price: 22999,
+      badge: "Flagship",
+      rating: 5.0,
+      reviews_count: 145,
+      capacity: "15L Storage",
+      technology: "9-Stage Alkaline + Copper",
+      description: "Ultimate health purification with pH balancing alkaline filters and smartphone app telemetry integration.",
+      features: [
+        "9-Stage Medical Grade Filtration",
+        "Micro-Cluster Hydration Technology",
+        "Smartphone WiFi Health Telemetry",
+        "Lifetime Stainless Steel Tank",
+      ],
+      image_url: "/uploads/products/aquapure_alkaline_max.png",
+      image: "👑",
+    },
+    {
+      id: 6,
+      name: "AquaPure Basic Eco",
+      category: "UV Purifier",
+      price: 5999,
+      original_price: 7999,
+      badge: "Budget Friendly",
+      rating: 4.3,
+      reviews_count: 290,
+      capacity: "5L Storage",
+      technology: "UV Purification",
+      description: "Reliable and budget-friendly purification for municipal tap water supplies with low maintenance costs.",
+      features: [
+        "Pure UV Disinfection",
+        "Low Operating Cost",
+        "Compact Countertop Footprint",
+        "Zero Waste Water",
+      ],
+      image_url: "/uploads/products/aquapure_basic.png",
+      image: "🌱",
+    },
+  ];
 
-	const nextSlide = () => {
-		setCurrentSlide((prev) => (prev + 1) % slides.length);
-	};
+  // Harmonize products
+  const products = (
+    dynamicProducts.length > 0
+      ? [...dynamicProducts].sort(
+          (a, b) => (a.product_id || a.id || 0) - (b.product_id || b.id || 0)
+        )
+      : defaultProducts
+  ).map((p) => ({
+    id: p.product_id || p.id,
+    name: p.name,
+    category: p.category || "RO Purifier",
+    price: p.price,
+    originalPrice: p.original_price || p.originalPrice || p.price + 3000,
+    badge: p.badge || "Certified",
+    rating: p.rating || 4.7,
+    reviews: p.reviews_count || p.reviews || 150,
+    image_url: p.image_url,
+    image: p.image || "💧",
+    description: p.description || "High-performance multi-stage water purifier with advanced filtration technology.",
+    features: Array.isArray(p.features)
+      ? p.features
+      : [
+          p.technology || "Advanced RO Multi-Stage",
+          p.capacity || "10L Storage Tank",
+          "1 Year Comprehensive Warranty",
+          "Free Doorstep Installation",
+        ],
+  }));
 
-	const prevSlide = () => {
-		setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
-	};
+  // Categories list
+  const categories = useMemo(() => {
+    const cats = ["All", ...new Set(products.map((p) => p.category))];
+    return cats;
+  }, [products]);
 
-	const features = [
-		{
-			icon: "water_drop",
-			title: "Advanced RO+UV+UF",
-			description:
-				"Triple purification technology for 100% safe drinking water",
-			color: "sky",
-		},
-		{
-			icon: "science",
-			title: "Copper + Alkaline Technology",
-			description: "Health benefits with copper-infused alkaline water",
-			color: "red",
-		},
-		{
-			icon: "verified",
-			title: "1 Year Warranty",
-			description: "Comprehensive warranty coverage on all products",
-			color: "sky",
-		},
-		{
-			icon: "home",
-			title: "Doorstep Service",
-			description: "Convenient service right at your home",
-			color: "slate",
-		},
-		{
-			icon: "construction",
-			title: "Free Installation",
-			description: "Professional installation at no extra cost",
-			color: "red",
-		},
-		{
-			icon: "support_agent",
-			title: "24/7 Customer Support",
-			description: "Round-the-clock assistance whenever you need",
-			color: "slate",
-		},
-	];
+  const filteredProducts = useMemo(() => {
+    if (selectedCategory === "All") return products;
+    return products.filter((p) => p.category === selectedCategory);
+  }, [products, selectedCategory]);
 
-	const getColorClasses = (color) => {
-		const colors = {
-			sky: {
-				bg: "bg-sky-100",
-				icon: "text-sky-500",
-				hover: "group-hover:bg-sky-500",
-			},
-			red: {
-				bg: "bg-red-100",
-				icon: "text-red-600",
-				hover: "group-hover:bg-red-600",
-			},
-			slate: {
-				bg: "bg-slate-100",
-				icon: "text-slate-700",
-				hover: "group-hover:bg-slate-700",
-			},
-		};
-		return colors[color];
-	};
+  // Demo Booking Handler
+  const handleBookingSubmit = async (e) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.phone.trim()) {
+      alert("Please provide your name and phone number.");
+      return;
+    }
 
-	const products = [
-		{
-			id: 1,
-			name: "AquaPure RO Elite",
-			category: "RO Purifier",
-			price: 12999,
-			originalPrice: 16999,
-			image: "💧",
-			rating: 4.8,
-			reviews: 245,
-			features: [
-				"7-Stage Purification",
-				"10L Storage Tank",
-				"TDS Controller",
-				"Smart LED Display",
-			],
-			badge: "Best Seller",
-		},
-		{
-			id: 2,
-			name: "AquaPure UV Pro",
-			category: "UV Purifier",
-			price: 8999,
-			originalPrice: 11999,
-			image: "🌊",
-			rating: 4.6,
-			reviews: 189,
-			features: [
-				"UV + UF Technology",
-				"8L Capacity",
-				"Energy Efficient",
-				"Auto Shut-off",
-			],
-			badge: "Popular",
-		},
-		{
-			id: 3,
-			name: "AquaPure Copper+",
-			category: "RO + Copper",
-			price: 15999,
-			originalPrice: 19999,
-			image: "⚡",
-			rating: 4.9,
-			reviews: 312,
-			features: [
-				"RO + UV + Copper",
-				"Alkaline Technology",
-				"12L Storage",
-				"Mineral Retention",
-			],
-			badge: "Premium",
-		},
-		{
-			id: 4,
-			name: "AquaPure Compact",
-			category: "Wall Mount RO",
-			price: 9999,
-			originalPrice: 12999,
-			image: "🔷",
-			rating: 4.5,
-			reviews: 156,
-			features: [
-				"Space Saving Design",
-				"6-Stage Purification",
-				"6L Tank",
-				"Quick Installation",
-			],
-			badge: "New",
-		},
-		{
-			id: 5,
-			name: "AquaPure Alkaline Max",
-			category: "Alkaline RO",
-			price: 18999,
-			originalPrice: 22999,
-			image: "💎",
-			rating: 5.0,
-			reviews: 98,
-			features: [
-				"Alkaline + Copper",
-				"9-Stage Purification",
-				"15L Capacity",
-				"Mobile App Control",
-			],
-			badge: "Premium",
-		},
-		{
-			id: 6,
-			name: "AquaPure Basic",
-			category: "UV Purifier",
-			price: 5999,
-			originalPrice: 7999,
-			image: "💠",
-			rating: 4.3,
-			reviews: 234,
-			features: [
-				"UV Purification",
-				"5L Storage",
-				"Budget Friendly",
-				"Low Maintenance",
-			],
-			badge: "Budget",
-		},
-	];
+    setFormSubmitting(true);
+    try {
+      await submitLead({
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        address: formData.address.trim(),
+        model: formData.model.trim() || "AquaPure Copper+ Alkaline",
+      });
+      setFormSuccess(true);
+      setFormData({ name: "", phone: "", address: "", model: "" });
+      setTimeout(() => setFormSuccess(false), 8000);
+    } catch (error) {
+      console.error("Lead submission error:", error);
+      alert("Failed to submit demo request. Please call our toll-free helpline 1800-MONO-PURE.");
+    } finally {
+      setFormSubmitting(false);
+    }
+  };
 
-	const addToCart = (productId) => {
-		setCart((prev) => ({
-			...prev,
-			[productId]: (prev[productId] || 0) + 1,
-		}));
-	};
+  const selectModelForDemo = (modelName) => {
+    setFormData((prev) => ({ ...prev, model: modelName }));
+    const formElement = document.getElementById("demo-booking");
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
-	const getBadgeColor = (badge) => {
-		const colors = {
-			"Best Seller": "bg-red-600",
-			Popular: "bg-sky-500",
-			Premium: "bg-slate-900",
-			New: "bg-green-500",
-			Budget: "bg-blue-500",
-		};
-		return colors[badge] || "bg-slate-600";
-	};
+  // Purification Stages Data
+  const purificationStages = [
+    {
+      step: "01",
+      title: "Spun Pre-Carbon & Sediment",
+      short: "Macro Filtration",
+      desc: "Traps high-density suspended impurities like rust, fine sand, dirt, and dissolves toxic chlorine and unwanted odors.",
+      poreSize: "5 Micron",
+      removes: "Rust, Dirt, Sand & Chlorine",
+    },
+    {
+      step: "02",
+      title: "0.0001 Micron High-Flow RO",
+      short: "Micro Membrane",
+      desc: "Filters dissolved salts, heavy metals, arsenic, lead, fluorides, micro-plastics, and pesticides at the molecular level.",
+      poreSize: "0.0001 Micron",
+      removes: "Heavy Metals, Lead & High TDS",
+    },
+    {
+      step: "03",
+      title: "UV-C LED Germicidal Chamber",
+      short: "Pathogen Shield",
+      desc: "Destroys 99.99% of bacteria, viruses, and cysts using medical-grade UV-C wavelength, ensuring 0% microbial survival.",
+      poreSize: "Germicidal 254nm",
+      removes: "Viruses, Bacteria & Cysts",
+    },
+    {
+      step: "04",
+      title: "Active Copper & Alkaline Cartridge",
+      short: "Mineral Infusion",
+      desc: "Re-infuses natural copper ions and essential calcium/magnesium minerals, balancing water pH to 8.0 - 8.5 for optimal gut health.",
+      poreSize: "Biomineralizer",
+      removes: "Acidity & Mineral Deficiency",
+    },
+  ];
 
-	// Customer Reviews Data
-	const testimonials = [
-		{
-			id: 1,
-			name: "Priya Sharma",
-			location: "Mumbai",
-			rating: 5,
-			comment: "Best water purifier! Water tastes amazing and service is excellent.",
-			image: "👩",
-			purchase: "AquaPure RO Elite"
-		},
-		{
-			id: 2,
-			name: "Rahul Verma",
-			location: "Delhi",
-			rating: 5,
-			comment: "Installation was quick and professional. Highly recommended!",
-			image: "👨",
-			purchase: "AquaPure UV Pro"
-		},
-		{
-			id: 3,
-			name: "Anita Patel",
-			location: "Bangalore",
-			rating: 4,
-			comment: "Great value for money. Customer support is very responsive.",
-			image: "👩‍💼",
-			purchase: "AquaPure Compact"
-		},
-		{
-			id: 4,
-			name: "Sanjay Kumar",
-			location: "Chennai",
-			rating: 5,
-			comment: "Copper technology makes a noticeable difference in water taste.",
-			image: "👨‍💼",
-			purchase: "AquaPure Copper+"
-		},
-		{
-			id: 5,
-			name: "Meera Nair",
-			location: "Kolkata",
-			rating: 5,
-			comment: "AMC plan is worth every penny. Regular maintenance keeps it running smooth.",
-			image: "👩‍🏫",
-			purchase: "AquaPure Alkaline Max"
-		},
-		{
-			id: 6,
-			name: "Vikram Singh",
-			location: "Hyderabad",
-			rating: 4,
-			comment: "Good product at affordable price. Does the job perfectly.",
-			image: "👨‍🔧",
-			purchase: "AquaPure Basic"
-		}
-	];
+  // FAQ Data
+  const faqs = [
+    {
+      q: "How does the Free Doorstep Demonstration work?",
+      a: "Our certified technician visits your home at your scheduled time with our demonstration kit. We test your current tap water TDS level, show the live purification process, and provide fresh alkaline water tasting with zero purchase obligation.",
+    },
+    {
+      q: "What is an ideal TDS level for drinking water?",
+      a: "According to WHO and Indian BIS standards, drinking water TDS between 80 to 150 ppm is optimal. MonoPurifier's smart TDS controller ensures your water retains healthy essential minerals without becoming demineralized.",
+    },
+    {
+      q: "Is installation really free?",
+      a: "Yes! Every MonoPurifier model includes 100% free doorstep installation by a certified engineer, including all required connection pipes, pre-filter housing, and brass diverter valve.",
+    },
+    {
+      q: "What warranty and service support do you offer?",
+      a: "All models come with a 1-Year Comprehensive Warranty covering all electrical parts, filters, and membrane. We also offer 4-hour emergency technician support across 1,200+ cities in India.",
+    },
+    {
+      q: "Can MonoPurifier handle high TDS borewell water?",
+      a: "Yes. Our high-recovery RO membranes are engineered to purify hard borewell and tanker water with TDS up to 2,500 ppm, turning it into sweet, odorless, alkaline drinking water.",
+    },
+  ];
 
-	// Comparison Data
-	const comparisonData = {
-		basic: {
-			name: "Basic Model",
-			price: "₹5,999",
-			features: {
-				"Purification": "UV Only",
-				"Storage Capacity": "5L",
-				"Technology": "Single Stage",
-				"Maintenance Cost": "₹500/year",
-				"Warranty": "1 Year",
-				"Smart Features": "No"
-			}
-		},
-		premium: {
-			name: "Premium Model",
-			price: "₹18,999",
-			features: {
-				"Purification": "RO+UV+UF+Alkaline",
-				"Storage Capacity": "15L",
-				"Technology": "9-Stage",
-				"Maintenance Cost": "₹1,200/year",
-				"Warranty": "2 Years",
-				"Smart Features": "Yes"
-			}
-		}
-	};
+  return (
+    <div className="font-sans bg-slate-50 text-slate-900 overflow-x-hidden">
+      {/* ========================================================
+          1. HERO SECTION
+         ======================================================== */}
+      <section id="home" className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-gradient-to-b from-sky-50 via-white to-slate-50">
+        {/* Subtle decorative background glows */}
+        <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/4 w-96 h-96 bg-sky-200/50 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 translate-y-12 -translate-x-1/4 w-96 h-96 bg-blue-200/40 rounded-full blur-3xl pointer-events-none"></div>
 
-	// AMC Plans Data
-	const amcPlans = [
-		{
-			name: "Basic AMC",
-			price: "₹999/year",
-			features: [
-				"2 Free Service Visits",
-				"Filter Replacement (Extra)",
-				"General Checkup",
-				"Phone Support"
-			],
-			popular: false
-		},
-		{
-			name: "Standard AMC",
-			price: "₹1,799/year",
-			features: [
-				"4 Free Service Visits",
-				"2 Filter Replacements",
-				"Complete Maintenance",
-				"Priority Support",
-				"Discount on Parts"
-			],
-			popular: true
-		},
-		{
-			name: "Premium AMC",
-			price: "₹2,999/year",
-			features: [
-				"6 Free Service Visits",
-				"All Filter Replacements",
-				"Complete Maintenance",
-				"24/7 Priority Support",
-				"Free Parts Replacement",
-				"Extended Warranty"
-			],
-			popular: false
-		}
-	];
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            {/* Left Copy */}
+            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-100/80 border border-sky-200 text-sky-700 text-xs font-bold tracking-wide uppercase">
+                <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+                <span>⭐ Rated #1 Water Purifier Brand 2026</span>
+              </div>
 
-	// FAQ Data
-	const faqs = [
-		{
-			question: "How long does installation take?",
-			answer: "Professional installation typically takes 1-2 hours. Our technicians ensure proper setup and testing."
-		},
-		{
-			question: "What is TDS and why is it important?",
-			answer: "TDS (Total Dissolved Solids) measures mineral content in water. Our TDS controller maintains essential minerals while removing harmful contaminants."
-		},
-		{
-			question: "How often should filters be replaced?",
-			answer: "Sediment filters: 6 months, RO membrane: 1-2 years, UV lamp: 1 year. Exact timing depends on water quality and usage."
-		},
-		{
-			question: "Is RO water safe for drinking?",
-			answer: "Yes! Our RO systems include mineral retention technology to ensure you get pure water with essential minerals preserved."
-		},
-		{
-			question: "Do you provide free installation?",
-			answer: "Yes, free professional installation is included with every purifier purchase."
-		},
-		{
-			question: "What is the warranty period?",
-			answer: "We offer 1-2 years comprehensive warranty depending on the model, covering parts and labor."
-		}
-	];
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-slate-950 font-heading tracking-tight leading-tight">
+                Pure, Mineral-Rich Water for <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-600">Healthier Living.</span>
+              </h1>
 
-	// Form Handler
-	const handleInputChange = (e) => {
-		setFormData({
-			...formData,
-			[e.target.name]: e.target.value
-		});
-	};
+              <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal">
+                Next-generation 7-stage RO + UV + UF purification with <strong>Active Copper</strong> and <strong>Bio-Alkaline Mineralization</strong>. Engineered specifically to eliminate 99.99% toxins from Indian municipal and borewell water.
+              </p>
 
-	const handleSubmit = (e) => {
-		e.preventDefault();
-		// Handle form submission here
-		console.log("Form submitted:", formData);
-		alert("Thank you! Our executive will contact you soon to schedule the demo.");
-		setFormData({ name: "", phone: "", address: "", model: "" });
-	};
+              {/* CTAs */}
+              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-2">
+                <a
+                  href="#demo-booking"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-4 rounded-2xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white font-bold text-sm tracking-wide shadow-xl shadow-sky-500/25 hover:shadow-2xl hover:-translate-y-0.5 transition duration-200"
+                >
+                  <FaCalendarCheck className="text-base" />
+                  <span>Book Free Doorstep Demo</span>
+                </a>
 
-	const toggleFaq = (index) => {
-		setActiveFaq(activeFaq === index ? null : index);
-	};
+                <a
+                  href="#products"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-4 rounded-2xl bg-white border border-slate-200 hover:border-sky-300 text-slate-700 hover:text-sky-600 font-bold text-sm shadow-sm hover:shadow transition duration-200"
+                >
+                  <span>Explore All Models</span>
+                  <FaArrowRight className="text-xs" />
+                </a>
+              </div>
 
-	return (
-		<div className="min-h-screen">
-			{/* Carousel Section */}
-			<div className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
-				{/* Slides */}
-				{slides.map((slide, index) => (
-					<div
-						key={slide.id}
-						className={`absolute inset-0 transition-opacity duration-1000 ${
-							index === currentSlide ? "opacity-100" : "opacity-0"
-						}`}
-					>
-						<div
-							className={`w-full h-full bg-gradient-to-r ${slide.bgColor} flex items-center justify-center`}
-						>
-							<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-								<div className="grid md:grid-cols-2 gap-8 items-center">
-									{/* Content */}
-									<div className="text-white space-y-6">
-										<h2 className="text-4xl md:text-6xl font-bold leading-tight">
-											{slide.title}
-										</h2>
-										<h3 className="text-xl md:text-2xl font-semibold text-sky-100">
-											{slide.subtitle}
-										</h3>
-										<p className="text-lg md:text-xl text-white/90">
-											{slide.description}
-										</p>
-										<div className="flex gap-4 pt-4">
-											<button className="bg-white text-slate-900 px-6 py-3 rounded-md font-semibold hover:bg-sky-100 transition flex items-center gap-2">
-												{slide.cta}
-												<span className="material-icons">arrow_forward</span>
-											</button>
-											<button className="border-2 border-white text-white px-6 py-3 rounded-md font-semibold hover:bg-white/10 transition">
-												Learn More
-											</button>
-										</div>
-									</div>
+              {/* Quick Trust Checks */}
+              <div className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-y-2 gap-x-6 text-xs font-semibold text-slate-500">
+                <span className="flex items-center gap-1.5 text-slate-700">
+                  <FaCheckCircle className="text-emerald-500" /> Free TDS Water Test
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-700">
+                  <FaCheckCircle className="text-emerald-500" /> Free Installation
+                </span>
+                <span className="flex items-center gap-1.5 text-slate-700">
+                  <FaCheckCircle className="text-emerald-500" /> 1-Year Comprehensive Warranty
+                </span>
+              </div>
+            </div>
 
-									{/* Image/Icon */}
-									<div className="hidden md:flex justify-center items-center">
-										<div className="text-9xl animate-bounce">{slide.image}</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				))}
+            {/* Right Product Spotlight Card */}
+            <div className="lg:col-span-5">
+              <div className="relative mx-auto max-w-md">
+                {/* Product Card Container */}
+                <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/80 relative overflow-hidden bg-white/90">
+                  {/* Badge */}
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-extrabold uppercase rounded-full tracking-wider shadow-sm">
+                      ★ Flagship 2026 Model
+                    </span>
+                    <span className="text-xs font-semibold text-slate-400">
+                      AquaPure Copper+ Alkaline
+                    </span>
+                  </div>
 
-				{/* Navigation Arrows */}
-				<button
-					onClick={prevSlide}
-					className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 text-white p-2 rounded-full backdrop-blur-sm transition"
-				>
-					<span className="material-icons text-3xl">chevron_left</span>
-				</button>
-				<button
-					onClick={nextSlide}
-					className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/30 hover:bg-white/50 text-white p-2 rounded-full backdrop-blur-sm transition"
-				>
-					<span className="material-icons text-3xl">chevron_right</span>
-				</button>
+                  {/* Purifier Hero Graphic */}
+                  <div className="h-72 rounded-2xl bg-white flex items-center justify-center relative p-3 mb-6 group overflow-hidden border border-slate-100 shadow-sm">
+                    <img
+                      src="/products/aquapure_copper_plus.png"
+                      alt="AquaPure Copper+ Alkaline Flagship"
+                      className="max-h-full max-w-full object-contain transform group-hover:scale-105 transition-transform duration-300 drop-shadow-xl"
+                    />
 
-				{/* Dots Indicator */}
-				<div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
-					{slides.map((_, index) => (
-						<button
-							key={index}
-							onClick={() => goToSlide(index)}
-							className={`transition-all duration-300 rounded-full ${
-								index === currentSlide
-									? "bg-white w-8 h-3"
-									: "bg-white/50 w-3 h-3 hover:bg-white/70"
-							}`}
-						/>
-					))}
-				</div>
-			</div>
+                    {/* Floating Spec Tags */}
+                    <div className="absolute top-3 left-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl text-[11px] font-bold text-sky-700 shadow-sm border border-sky-100 flex items-center gap-1.5">
+                      <FaTint className="text-sky-500" />
+                      <span>pH 8.5+ Alkaline</span>
+                    </div>
 
-			{/* Features Section */}
-			<section className="py-16 bg-white">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					{/* Section Header */}
-					<div className="text-center mb-12">
-						<h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-							Why Choose <span className="text-sky-500">MO</span>
-							<span className="text-red-600">NA</span>?
-						</h2>
-						<p className="text-lg text-slate-600 max-w-2xl mx-auto">
-							We deliver excellence in water purification with cutting-edge
-							technology and unmatched customer service
-						</p>
-					</div>
+                    <div className="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-xl text-[11px] font-bold text-emerald-700 shadow-sm border border-emerald-100 flex items-center gap-1.5">
+                      <FaShieldAlt className="text-emerald-500" />
+                      <span>99.9% Pure Copper</span>
+                    </div>
+                  </div>
 
-					{/* Features Grid */}
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-						{features.map((feature, index) => {
-							const colors = getColorClasses(feature.color);
-							return (
-								<div
-									key={index}
-									className="group bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 p-6 border border-slate-200 hover:border-transparent hover:-translate-y-2"
-								>
-									{/* Icon */}
-									<div
-										className={`${colors.bg} ${colors.hover} w-16 h-16 rounded-lg flex items-center justify-center mb-4 transition-colors duration-300`}
-									>
-										<span
-											className={`material-icons text-4xl ${colors.icon} group-hover:text-white transition-colors duration-300`}
-										>
-											{feature.icon}
-										</span>
-									</div>
+                  {/* Specs & Pricing */}
+                  <div className="space-y-4">
+                    <div className="flex items-baseline justify-between">
+                      <div>
+                        <h3 className="font-heading font-black text-xl text-slate-900">
+                          AquaPure Copper+ Alkaline
+                        </h3>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Dual Mineralization & In-Tank UV-C
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xs text-slate-400 line-through mr-1.5">
+                          ₹19,999
+                        </span>
+                        <span className="font-heading font-black text-2xl text-sky-600">
+                          ₹15,999
+                        </span>
+                      </div>
+                    </div>
 
-									{/* Content */}
-									<h3 className="text-xl font-bold text-slate-900 mb-2">
-										{feature.title}
-									</h3>
-									<p className="text-slate-600 leading-relaxed">
-										{feature.description}
-									</p>
-								</div>
-							);
-						})}
-					</div>
+                    <button
+                      onClick={() => selectModelForDemo("AquaPure Copper+ Alkaline")}
+                      className="w-full py-3.5 bg-slate-900 hover:bg-sky-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-md"
+                    >
+                      <FaCalendarCheck />
+                      <span>Book Free Demo For This Model</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-					{/* CTA Section */}
-					<div className="mt-12 text-center">
-						<button className="bg-red-600 text-white px-8 py-4 rounded-md font-semibold text-lg hover:bg-red-700 transition shadow-lg hover:shadow-xl inline-flex items-center gap-2">
-							Get Started Today
-							<span className="material-icons">arrow_forward</span>
-						</button>
-					</div>
-				</div>
-			</section>
+        {/* 4 Core Pillars Trust Strip */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-16">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 grid grid-cols-2 md:grid-cols-4 gap-6 text-center divide-y md:divide-y-0 md:divide-x divide-slate-100">
+            <div className="pt-3 md:pt-0">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 font-heading">
+                99.99%
+              </p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">
+                Impurity & Toxin Removal
+              </p>
+            </div>
+            <div className="pt-3 md:pt-0">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 font-heading">
+                150K+
+              </p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">
+                Happy Indian Families
+              </p>
+            </div>
+            <div className="pt-3 md:pt-0">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 font-heading">
+                100% Free
+              </p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">
+                Doorstep Installation
+              </p>
+            </div>
+            <div className="pt-3 md:pt-0">
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 font-heading">
+                4 Hours
+              </p>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-1">
+                Rapid Service Response
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-			{/* Technology / How It Works Section */}
-			<section className="py-16 bg-slate-50">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					{/* Section Header */}
-					<div className="text-center mb-16">
-						<h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-							How Our <span className="text-sky-500">Purification</span> Technology Works
-						</h2>
-						<p className="text-lg text-slate-600 max-w-3xl mx-auto">
-							Advanced multi-stage purification process that ensures 100% safe and healthy drinking water
-						</p>
-					</div>
+      {/* ========================================================
+          2. INTERACTIVE PURIFICATION TECHNOLOGY BREAKDOWN
+         ======================================================== */}
+      <section id="technology" className="py-20 bg-white border-y border-slate-200/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-extrabold uppercase tracking-wider">
+              Patented 7-Stage Process
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-heading mt-3 tracking-tight">
+              How MonoPurifier Cleans Every Single Drop
+            </h2>
+            <p className="text-slate-600 text-sm sm:text-base mt-2">
+              Unlike ordinary purifiers that strip away beneficial minerals, our intelligent 4-phase matrix purifies water while infusing natural active copper and bio-alkaline minerals.
+            </p>
+          </div>
 
-					{/* Purification Process Steps */}
-					<div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
-						{/* Process Visualization */}
-						<div className="relative">
-							{/* Main Purifier Graphic */}
-							<div className="bg-gradient-to-b from-slate-100 to-slate-200 rounded-2xl p-8 shadow-lg">
-								<div className="relative h-80">
-									{/* Water Flow Line */}
-									<div className="absolute left-1/2 top-0 bottom-0 w-1 bg-sky-200 transform -translate-x-1/2"></div>
-									
-									{/* Technology Points */}
-									{[
-										{ step: 1, name: "Sediment Filter", icon: "filter_alt", position: "top-4", color: "blue" },
-										{ step: 2, name: "RO Membrane", icon: "settings", position: "top-24", color: "green" },
-										{ step: 3, name: "UV Chamber", icon: "lightbulb", position: "top-44", color: "purple" },
-										{ step: 4, name: "UF Filter", icon: "science", position: "top-64", color: "orange" },
-										{ step: 5, name: "TDS Controller", icon: "speed", position: "bottom-24", color: "red" },
-										{ step: 6, name: "Copper+Alkaline", icon: "battery_charging_full", position: "bottom-4", color: "amber" },
-									].map((tech) => (
-										<div
-											key={tech.step}
-											className={`absolute left-1/2 ${tech.position} transform -translate-x-1/2 -translate-y-1/2`}
-										>
-											<div className={`relative group cursor-pointer`}>
-												<div className={`
-													w-12 h-12 rounded-full flex items-center justify-center text-white shadow-lg
-													${tech.color === 'blue' ? 'bg-blue-500' : ''}
-													${tech.color === 'green' ? 'bg-green-500' : ''}
-													${tech.color === 'purple' ? 'bg-purple-500' : ''}
-													${tech.color === 'orange' ? 'bg-orange-500' : ''}
-													${tech.color === 'red' ? 'bg-red-500' : ''}
-													${tech.color === 'amber' ? 'bg-amber-500' : ''}
-													hover:scale-110 transition-transform duration-300
-												`}>
-													<span className="material-icons">{tech.icon}</span>
-												</div>
-												{/* Tooltip */}
-												<div className="absolute left-1/2 top-full mt-2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-													<div className="bg-slate-900 text-white text-sm px-3 py-1 rounded-md whitespace-nowrap">
-														{tech.name}
-													</div>
-												</div>
-											</div>
-										</div>
-									))}
-								</div>
-							</div>
-						</div>
+          {/* Interactive Step Switcher */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left Steps List */}
+            <div className="lg:col-span-6 space-y-3">
+              {purificationStages.map((stage, idx) => (
+                <div
+                  key={stage.step}
+                  onClick={() => setActiveStage(idx)}
+                  className={`cursor-pointer p-5 rounded-2xl border transition-all duration-200 ${
+                    activeStage === idx
+                      ? "bg-sky-50 border-sky-300 ring-2 ring-sky-400 shadow-md translate-x-2"
+                      : "bg-white border-slate-200 hover:border-sky-200 shadow-sm"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-bold text-sky-600 bg-white px-2.5 py-1 rounded-lg border border-sky-100">
+                      Stage {stage.step}
+                    </span>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                      {stage.short}
+                    </span>
+                  </div>
 
-						{/* Process Description */}
-						<div className="space-y-6">
-							<h3 className="text-3xl font-bold text-slate-900 mb-6">
-								6-Stage Advanced Purification
-							</h3>
-							
-							{[
-								{
-									stage: "Stage 1",
-									title: "Sediment Pre-Filtration",
-									description: "Removes dust, rust, sand, and other physical impurities",
-									icon: "filter_alt",
-									color: "text-blue-500"
-								},
-								{
-									stage: "Stage 2",
-									title: "RO Membrane",
-									description: "Removes dissolved salts, heavy metals, and harmful chemicals",
-									icon: "settings",
-									color: "text-green-500"
-								},
-								{
-									stage: "Stage 3",
-									title: "UV Sterilization",
-									description: "Kills 99.9% viruses, bacteria, and other microorganisms",
-									icon: "lightbulb",
-									color: "text-purple-500"
-								},
-								{
-									stage: "Stage 4",
-									title: "UF Filtration",
-									description: "Removes remaining fine particles and microorganisms",
-									icon: "science",
-									color: "text-orange-500"
-								},
-								{
-									stage: "Stage 5",
-									title: "TDS Controller",
-									description: "Maintains essential minerals for better taste and health",
-									icon: "speed",
-									color: "text-red-500"
-								},
-								{
-									stage: "Stage 6",
-									title: "Copper + Alkaline Booster",
-									description: "Adds copper benefits and optimizes pH level",
-									icon: "battery_charging_full",
-									color: "text-amber-500"
-								}
-							].map((step, index) => (
-								<div key={index} className="flex gap-4 p-4 rounded-lg hover:bg-slate-50 transition-colors">
-									<div className={`${step.color} flex-shrink-0`}>
-										<span className="material-icons text-3xl">{step.icon}</span>
-									</div>
-									<div>
-										<div className="text-sm text-slate-500 font-semibold">{step.stage}</div>
-										<h4 className="text-lg font-bold text-slate-900 mb-1">{step.title}</h4>
-										<p className="text-slate-600">{step.description}</p>
-									</div>
-								</div>
-							))}
-						</div>
-					</div>
+                  <h3 className="font-heading font-black text-lg text-slate-900 mt-2">
+                    {stage.title}
+                  </h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    {stage.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
 
-					{/* Technology Details Grid */}
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-						{[
-							{
-								title: "RO Technology",
-								description: "Reverse Osmosis removes dissolved impurities at molecular level",
-								benefits: ["Removes heavy metals", "Eliminates dissolved salts", "Filters chemicals"],
-								icon: "settings",
-								color: "from-green-400 to-green-600"
-							},
-							{
-								title: "UV Purification",
-								description: "Ultraviolet rays destroy microorganisms' DNA",
-								benefits: ["Kills 99.9% germs", "Chemical-free process", "Instant purification"],
-								icon: "lightbulb",
-								color: "from-purple-400 to-purple-600"
-							},
-							{
-								title: "UF Filtration",
-								description: "Ultra Filtration removes fine particles and bacteria",
-								benefits: ["No electricity needed", "Retains minerals", "Removes bacteria"],
-								icon: "science",
-								color: "from-orange-400 to-orange-600"
-							},
-							{
-								title: "TDS Controller",
-								description: "Maintains optimal mineral content in water",
-								benefits: ["Better taste", "Essential minerals", "Balanced water"],
-								icon: "speed",
-								color: "from-red-400 to-red-600"
-							},
-							{
-								title: "Copper Technology",
-								description: "Natural copper infusion for health benefits",
-								benefits: ["Antioxidant properties", "Supports immunity", "Aids digestion"],
-								icon: "battery_charging_full",
-								color: "from-amber-400 to-amber-600"
-							},
-							{
-								title: "Alkaline Booster",
-								description: "Optimizes pH level for better hydration",
-								benefits: ["Balanced pH", "Better hydration", "Antioxidant rich"],
-								icon: "water_drop",
-								color: "from-blue-400 to-blue-600"
-							}
-						].map((tech, index) => (
-							<div
-								key={index}
-								className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group border border-slate-200"
-							>
-								{/* Icon Header */}
-								<div className={`bg-gradient-to-r ${tech.color} p-6 text-white`}>
-									<div className="flex items-center gap-4">
-										<span className="material-icons text-4xl">{tech.icon}</span>
-										<h3 className="text-xl font-bold">{tech.title}</h3>
-									</div>
-								</div>
+            {/* Right Stage Detail Showcase */}
+            <div className="lg:col-span-6">
+              <div className="bg-gradient-to-br from-slate-900 to-sky-950 rounded-3xl p-8 text-white shadow-2xl relative overflow-hidden">
+                <div className="absolute -right-10 -bottom-10 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-								{/* Content */}
-								<div className="p-6">
-									<p className="text-slate-600 mb-4">{tech.description}</p>
-									
-									{/* Benefits */}
-									<ul className="space-y-2">
-										{tech.benefits.map((benefit, benefitIndex) => (
-											<li key={benefitIndex} className="flex items-center text-sm text-slate-700">
-												<span className="material-icons text-green-500 text-sm mr-2">check_circle</span>
-												{benefit}
-											</li>
-										))}
-									</ul>
-								</div>
-							</div>
-						))}
-					</div>
+                <div className="relative z-10 space-y-6">
+                  <div className="inline-block px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-sky-300 uppercase tracking-wider">
+                    Stage {purificationStages[activeStage].step} In Detail
+                  </div>
 
-					{/* CTA */}
-					<div className="text-center mt-12">
-						<button className="bg-sky-500 text-white px-8 py-4 rounded-md font-semibold text-lg hover:bg-sky-600 transition shadow-lg hover:shadow-xl inline-flex items-center gap-2">
-							Learn More About Our Technology
-							<span className="material-icons">arrow_forward</span>
-						</button>
-					</div>
-				</div>
-			</section>
+                  <h3 className="text-2xl sm:text-3xl font-black font-heading tracking-tight">
+                    {purificationStages[activeStage].title}
+                  </h3>
 
-			{/* Products Section */}
-			<section className="py-16 bg-sky-50">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					{/* Section Header */}
-					<div className="text-center mb-12">
-						<h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-							Featured Products
-						</h2>
-						<p className="text-lg text-slate-600 max-w-2xl mx-auto">
-							Discover our best-selling water purifiers designed for every home
-							and budget
-						</p>
-					</div>
+                  <p className="text-slate-300 text-sm leading-relaxed">
+                    {purificationStages[activeStage].desc}
+                  </p>
 
-					{/* Products Grid */}
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-						{products.map((product) => (
-							<div
-								key={product.id}
-								className="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden group"
-							>
-								{/* Badge */}
-								<div className="relative">
-									<div
-										className={`absolute top-4 left-4 ${getBadgeColor(
-											product.badge
-										)} text-white px-3 py-1 rounded-full text-sm font-semibold z-10`}
-									>
-										{product.badge}
-									</div>
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10 text-xs">
+                    <div className="bg-white/5 p-4 rounded-xl">
+                      <span className="text-slate-400 block mb-1">Filtration Rating</span>
+                      <strong className="text-white text-base font-mono">
+                        {purificationStages[activeStage].poreSize}
+                      </strong>
+                    </div>
+                    <div className="bg-white/5 p-4 rounded-xl">
+                      <span className="text-slate-400 block mb-1">Primary Target</span>
+                      <strong className="text-sky-300 text-sm">
+                        {purificationStages[activeStage].removes}
+                      </strong>
+                    </div>
+                  </div>
 
-									{/* Product Image */}
-									<div className="bg-gradient-to-br from-sky-100 to-sky-200 h-64 flex items-center justify-center group-hover:from-sky-200 group-hover:to-sky-300 transition-all duration-300">
-										<div className="text-8xl transform group-hover:scale-110 transition-transform duration-300">
-											{product.image}
-										</div>
-									</div>
-								</div>
+                  {/* TDS Simulator comparison */}
+                  <div className="bg-white/10 rounded-2xl p-4 border border-white/10">
+                    <div className="flex items-center justify-between text-xs mb-2">
+                      <span className="text-slate-300">Water Quality Transformation</span>
+                      <span className="text-emerald-400 font-bold">Optimal pH 8.5</span>
+                    </div>
 
-								{/* Product Info */}
-								<div className="p-6">
-									<div className="mb-3">
-										<span className="text-sm text-sky-600 font-semibold">
-											{product.category}
-										</span>
-										<h3 className="text-xl font-bold text-slate-900 mt-1">
-											{product.name}
-										</h3>
-									</div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 bg-red-950/60 p-2.5 rounded-lg border border-red-800/40 text-center">
+                        <span className="text-[10px] text-red-300 block">Raw Tap Water</span>
+                        <strong className="text-red-400 text-sm">TDS ~850 ppm</strong>
+                      </div>
+                      <FaArrowRight className="text-slate-500 shrink-0 text-xs" />
+                      <div className="flex-1 bg-emerald-950/60 p-2.5 rounded-lg border border-emerald-800/40 text-center">
+                        <span className="text-[10px] text-emerald-300 block">MonoPurifier</span>
+                        <strong className="text-emerald-400 text-sm">TDS ~120 ppm</strong>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
-									{/* Rating */}
-									<div className="flex items-center gap-2 mb-4">
-										<div className="flex items-center">
-											<span className="material-icons text-yellow-400 text-sm">
-												star
-											</span>
-											<span className="text-sm font-semibold text-slate-900 ml-1">
-												{product.rating}
-											</span>
-										</div>
-										<span className="text-sm text-slate-500">
-											({product.reviews} reviews)
-										</span>
-									</div>
+      {/* ========================================================
+          3. DYNAMIC PRODUCT CATALOG
+         ======================================================== */}
+      <section id="products" className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <span className="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-extrabold uppercase tracking-wider">
+                Full Water Purifier Range
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-heading mt-3 tracking-tight">
+                Choose the Ideal Purifier for Your Home
+              </h2>
+              <p className="text-slate-500 text-sm mt-1">
+                All units certified with 100% Food-Grade Tanks & 1 Year Comprehensive Onsite Warranty.
+              </p>
+            </div>
 
-									{/* Features */}
-									<ul className="space-y-2 mb-4">
-										{product.features.map((feature, index) => (
-											<li
-												key={index}
-												className="flex items-start text-sm text-slate-600"
-											>
-												<span className="material-icons text-sky-500 text-sm mr-2">
-													check_circle
-												</span>
-												{feature}
-											</li>
-										))}
-									</ul>
+            {/* Category Filter Chips */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors duration-150 ${
+                    selectedCategory === cat
+                      ? "bg-slate-900 text-white shadow-sm"
+                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+          </div>
 
-									{/* Price */}
-									<div className="mb-4 pt-4 border-t border-slate-200">
-										<div className="flex items-baseline gap-2">
-											<span className="text-3xl font-bold text-slate-900">
-												₹{product.price.toLocaleString()}
-											</span>
-											<span className="text-lg text-slate-400 line-through">
-												₹{product.originalPrice.toLocaleString()}
-											</span>
-										</div>
-										<span className="text-sm text-green-600 font-semibold">
-											Save ₹
-											{(product.originalPrice - product.price).toLocaleString()}
-										</span>
-									</div>
+          {/* Products Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProducts.map((p) => {
+              const discountPercent = Math.round(
+                ((p.originalPrice - p.price) / p.originalPrice) * 100
+              );
 
-									{/* Buttons */}
-									<div className="flex gap-2">
-										<button
-											onClick={() => addToCart(product.id)}
-											className="flex-1 bg-sky-500 text-white py-3 rounded-md font-semibold hover:bg-sky-600 transition flex items-center justify-center gap-2"
-										>
-											<span className="material-icons text-xl">
-												shopping_cart
-											</span>
-											Add to Cart
-											{cart[product.id] && (
-												<span className="bg-white text-sky-500 rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
-													{cart[product.id]}
-												</span>
-											)}
-										</button>
-									</div>
-								</div>
-							</div>
-						))}
-					</div>
+              return (
+                <div
+                  key={p.id}
+                  className="bg-white rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col group"
+                >
+                  {/* Card Visual Header */}
+                  <div className="relative h-64 bg-white flex items-center justify-center p-4 border-b border-slate-100 overflow-hidden">
+                    {/* Badge */}
+                    <div className="absolute top-4 left-4 z-10">
+                      <span className="px-3 py-1 bg-slate-900/90 backdrop-blur-sm text-white text-[11px] font-bold rounded-full uppercase tracking-wider shadow-sm">
+                        {p.badge}
+                      </span>
+                    </div>
 
-					{/* View All Button */}
-					<div className="mt-12 text-center">
-						<button className="bg-slate-900 text-white px-8 py-4 rounded-md font-semibold text-lg hover:bg-slate-800 transition shadow-lg inline-flex items-center gap-2">
-							View All Products
-							<span className="material-icons">arrow_forward</span>
-						</button>
-					</div>
-				</div>
-			</section>
+                    {/* Discount Badge */}
+                    {discountPercent > 0 && (
+                      <div className="absolute top-4 right-4 z-10">
+                        <span className="px-2.5 py-1 bg-emerald-100 text-emerald-800 text-[11px] font-extrabold rounded-full border border-emerald-200">
+                          {discountPercent}% OFF
+                        </span>
+                      </div>
+                    )}
 
-			{/* Customer Reviews Section */}
-			<section className="py-16 bg-white">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="text-center mb-12">
-						<h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-							What Our Customers Say
-						</h2>
-						<p className="text-lg text-slate-600 max-w-2xl mx-auto">
-							Join thousands of satisfied families who trust MONA for pure, healthy water
-						</p>
-					</div>
+                    {/* Product Graphic / Image */}
+                    <img
+                      src={getProductImage(p)}
+                      alt={p.name}
+                      className="h-56 w-auto max-w-full object-contain transform group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        const fallback = getProductImage({ name: p.name });
+                        if (e.target.src !== window.location.origin + fallback) {
+                          e.target.src = fallback;
+                        }
+                      }}
+                    />
+                  </div>
 
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-						{testimonials.map((testimonial) => (
-							<div key={testimonial.id} className="bg-slate-50 rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow">
-								<div className="flex items-center gap-4 mb-4">
-									<div className="w-12 h-12 bg-sky-100 rounded-full flex items-center justify-center text-2xl">
-										{testimonial.image}
-									</div>
-									<div>
-										<h4 className="font-bold text-slate-900">{testimonial.name}</h4>
-										<p className="text-sm text-slate-600">{testimonial.location}</p>
-									</div>
-								</div>
-								
-								<div className="flex mb-3">
-									{Array.from({ length: 5 }).map((_, i) => (
-										<span key={i} className="material-icons text-yellow-400 text-sm">
-											{i < testimonial.rating ? "star" : "star_border"}
-										</span>
-									))}
-								</div>
-								
-								<p className="text-slate-700 mb-3 italic">"{testimonial.comment}"</p>
-								<p className="text-sm text-sky-600 font-semibold">Purchased: {testimonial.purchase}</p>
-							</div>
-						))}
-					</div>
-				</div>
-			</section>
+                  {/* Content */}
+                  <div className="p-6 flex-1 flex flex-col justify-between space-y-5">
+                    <div>
+                      {/* Rating & Reviews */}
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center text-amber-400 text-xs">
+                          <FaStar />
+                          <span className="font-bold text-slate-800 ml-1">
+                            {p.rating}
+                          </span>
+                        </div>
+                        <span className="text-xs text-slate-400 font-medium">
+                          ({p.reviews} verified reviews)
+                        </span>
+                      </div>
 
-			{/* Comparison Section */}
-			<section className="py-16 bg-slate-50">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="text-center mb-12">
-						<h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-							Choose the Right Purifier
-						</h2>
-						<p className="text-lg text-slate-600 max-w-2xl mx-auto">
-							Compare our models to find the perfect fit for your family's needs
-						</p>
-					</div>
+                      <h3 className="font-heading font-black text-xl text-slate-900 tracking-tight">
+                        {p.name}
+                      </h3>
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                        {p.description}
+                      </p>
 
-					<div className="max-w-4xl mx-auto">
-						{/* Tab Navigation */}
-						<div className="flex border-b border-slate-200 mb-8">
-							<button
-								onClick={() => setActiveTab("basic")}
-								className={`flex-1 py-4 font-semibold text-lg ${
-									activeTab === "basic"
-										? "text-sky-600 border-b-2 border-sky-600"
-										: "text-slate-500"
-								}`}
-							>
-								Basic vs Premium
-							</button>
-						</div>
+                      {/* Feature Pills */}
+                      <div className="mt-4 space-y-1.5">
+                        {p.features.slice(0, 3).map((feat, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center gap-2 text-xs text-slate-600"
+                          >
+                            <FaCheckCircle className="text-sky-500 text-xs shrink-0" />
+                            <span>{feat}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
 
-						{/* Comparison Table */}
-						<div className="bg-white rounded-xl shadow-lg overflow-hidden">
-							<div className="grid grid-cols-3 gap-4 p-6 bg-slate-50 border-b">
-								<div className="font-semibold text-slate-900">Features</div>
-								<div className="text-center font-semibold text-slate-900">
-									{comparisonData.basic.name}
-								</div>
-								<div className="text-center font-semibold text-slate-900">
-									{comparisonData.premium.name}
-								</div>
-							</div>
+                    {/* Pricing & CTA */}
+                    <div className="pt-4 border-t border-slate-100">
+                      <div className="flex items-baseline justify-between mb-3">
+                        <div>
+                          <div className="flex items-baseline gap-2">
+                            <span className="font-heading font-black text-2xl text-slate-950">
+                              ₹{p.price.toLocaleString("en-IN")}
+                            </span>
+                            <span className="text-xs text-slate-400 line-through">
+                              ₹{p.originalPrice.toLocaleString("en-IN")}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-emerald-600 font-semibold block">
+                            EMI from ₹{Math.round(p.price / 12)}/month
+                          </span>
+                        </div>
 
-							{Object.entries(comparisonData.basic.features).map(([feature, basicValue]) => (
-								<div key={feature} className="grid grid-cols-3 gap-4 p-6 border-b border-slate-100 hover:bg-slate-50">
-									<div className="font-medium text-slate-700">{feature}</div>
-									<div className="text-center text-slate-600">{basicValue}</div>
-									<div className="text-center text-green-600 font-semibold">
-										{comparisonData.premium.features[feature]}
-									</div>
-								</div>
-							))}
+                        <span className="text-[11px] font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-100">
+                          {p.category}
+                        </span>
+                      </div>
 
-							<div className="grid grid-cols-3 gap-4 p-6 bg-slate-50">
-								<div className="font-semibold text-slate-900">Price</div>
-								<div className="text-center">
-									<div className="text-2xl font-bold text-slate-900">{comparisonData.basic.price}</div>
-								</div>
-								<div className="text-center">
-									<div className="text-2xl font-bold text-green-600">{comparisonData.premium.price}</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</section>
+                      <button
+                        onClick={() => selectModelForDemo(p.name)}
+                        className="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition duration-200 flex items-center justify-center gap-2"
+                      >
+                        <FaCalendarCheck />
+                        <span>Book Free Home Demo</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-			{/* AMC / Service Plans Section */}
-			<section className="py-16 bg-white">
-				<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="text-center mb-12">
-						<h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-							Annual Maintenance Plans
-						</h2>
-						<p className="text-lg text-slate-600 max-w-2xl mx-auto">
-							Keep your purifier running smoothly with our comprehensive service plans
-						</p>
-					</div>
+      {/* ========================================================
+          4. WHY CHOOSE MONOPURIFIER
+         ======================================================== */}
+      <section id="why-us" className="py-20 bg-white border-y border-slate-200/60">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-extrabold uppercase tracking-wider">
+              The MonoPurifier Advantage
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-heading mt-3 tracking-tight">
+              Engineered for Complete Purity & Health
+            </h2>
+            <p className="text-slate-600 text-sm sm:text-base mt-2">
+              Combining world-class filtration components with unmatched doorstep care.
+            </p>
+          </div>
 
-					<div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-						{amcPlans.map((plan, index) => (
-							<div
-								key={index}
-								className={`relative rounded-xl shadow-lg overflow-hidden ${
-									plan.popular ? "ring-2 ring-sky-500 transform scale-105" : ""
-								}`}
-							>
-								{plan.popular && (
-									<div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-sky-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
-										Most Popular
-									</div>
-								)}
-								
-								<div className={`p-6 text-white ${
-									plan.popular ? "bg-sky-600" : "bg-slate-600"
-								}`}>
-									<h3 className="text-2xl font-bold mb-2">{plan.name}</h3>
-									<div className="text-3xl font-bold">{plan.price}</div>
-								</div>
-								
-								<div className="p-6 bg-white">
-									<ul className="space-y-3 mb-6">
-										{plan.features.map((feature, featureIndex) => (
-											<li key={featureIndex} className="flex items-center text-slate-700">
-												<span className="material-icons text-green-500 mr-3">check_circle</span>
-												{feature}
-											</li>
-										))}
-									</ul>
-									
-									<button className={`w-full py-3 rounded-md font-semibold transition ${
-										plan.popular
-											? "bg-sky-500 text-white hover:bg-sky-600"
-											: "bg-slate-200 text-slate-700 hover:bg-slate-300"
-									}`}>
-										Select Plan
-									</button>
-								</div>
-							</div>
-						))}
-					</div>
-				</div>
-			</section>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center text-xl mb-4">
+                <FaFlask />
+              </div>
+              <h3 className="font-heading font-bold text-lg text-slate-900">
+                0.0001 Micron RO Membrane
+              </h3>
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                Removes toxic heavy metals, lead, chromium, and micro-plastics that standard filters miss.
+              </p>
+            </div>
 
-			{/* FAQ Section */}
-			<section className="py-16 bg-slate-50">
-				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="text-center mb-12">
-						<h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
-							Frequently Asked Questions
-						</h2>
-						<p className="text-lg text-slate-600 max-w-2xl mx-auto">
-							Get answers to common questions about water purifiers and our services
-						</p>
-					</div>
+            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-xl mb-4">
+                <FaHeartbeat />
+              </div>
+              <h3 className="font-heading font-bold text-lg text-slate-900">
+                Active Copper + Alkaline
+              </h3>
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                Infuses healthy copper ions and balances pH to 8.5+ to aid digestion, immunity, and overall vitality.
+              </p>
+            </div>
 
-					<div className="space-y-4">
-						{faqs.map((faq, index) => (
-							<div key={index} className="bg-white rounded-lg shadow-md overflow-hidden">
-								<button
-									onClick={() => toggleFaq(index)}
-									className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-slate-50 transition-colors"
-								>
-									<span className="font-semibold text-slate-900 text-lg">{faq.question}</span>
-									<span className="material-icons text-sky-500">
-										{activeFaq === index ? "expand_less" : "expand_more"}
-									</span>
-								</button>
-								
-								{activeFaq === index && (
-									<div className="px-6 pb-4">
-										<p className="text-slate-600 leading-relaxed">{faq.answer}</p>
-									</div>
-								)}
-							</div>
-						))}
-					</div>
-				</div>
-			</section>
+            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-xl mb-4">
+                <FaShieldAlt />
+              </div>
+              <h3 className="font-heading font-bold text-lg text-slate-900">
+                1 Year Complete Warranty
+              </h3>
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                100% parts, membrane, and technician coverage with zero hidden costs or inspection fees.
+              </p>
+            </div>
 
-			{/* Contact / Book Demo Section */}
-			<section className="py-16 bg-gradient-to-r from-sky-500 to-blue-600">
-				<div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-					<div className="text-center mb-12">
-						<h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-							Book a Free Demo
-						</h2>
-						<p className="text-lg text-sky-100 max-w-2xl mx-auto">
-							Experience pure water at your home. Our expert will demonstrate the perfect purifier for your needs.
-						</p>
-					</div>
+            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl mb-4">
+                <FaAward />
+              </div>
+              <h3 className="font-heading font-bold text-lg text-slate-900">
+                Food-Grade Stainless Tank
+              </h3>
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                Prevents secondary bacterial growth and plastic leaching commonly found in conventional purifiers.
+              </p>
+            </div>
 
-					<div className="bg-white rounded-2xl shadow-2xl p-8">
-						<form onSubmit={handleSubmit} className="space-y-6">
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-								<div>
-									<label className="block text-sm font-semibold text-slate-700 mb-2">
-										Full Name *
-									</label>
-									<input
-										type="text"
-										name="name"
-										value={formData.name}
-										onChange={handleInputChange}
-										required
-										className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-										placeholder="Enter your full name"
-									/>
-								</div>
-								
-								<div>
-									<label className="block text-sm font-semibold text-slate-700 mb-2">
-										Phone Number *
-									</label>
-									<input
-										type="tel"
-										name="phone"
-										value={formData.phone}
-										onChange={handleInputChange}
-										required
-										className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-										placeholder="Enter your phone number"
-									/>
-								</div>
-							</div>
+            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-xl mb-4">
+                <FaTruck />
+              </div>
+              <h3 className="font-heading font-bold text-lg text-slate-900">
+                Free Doorstep Installation
+              </h3>
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                Installed within 24 hours of delivery by verified and trained water engineers with full demo.
+              </p>
+            </div>
 
-							<div>
-								<label className="block text-sm font-semibold text-slate-700 mb-2">
-									Address *
-								</label>
-								<textarea
-									name="address"
-									value={formData.address}
-									onChange={handleInputChange}
-									required
-									rows="3"
-									className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-									placeholder="Enter your complete address"
-								/>
-							</div>
+            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 hover:border-sky-300 hover:shadow-md transition">
+              <div className="w-12 h-12 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-xl mb-4">
+                <FaMicrochip />
+              </div>
+              <h3 className="font-heading font-bold text-lg text-slate-900">
+                Smart TDS & Filter Alert
+              </h3>
+              <p className="text-xs text-slate-600 mt-2 leading-relaxed">
+                Real-time digital LED display alerts you before filter life expires so your family never drinks impure water.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-							<div>
-								<label className="block text-sm font-semibold text-slate-700 mb-2">
-									Select Preferred Model
-								</label>
-								<select
-									name="model"
-									value={formData.model}
-									onChange={handleInputChange}
-									className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:border-transparent"
-								>
-									<option value="">Select a model</option>
-									<option value="RO Elite">AquaPure RO Elite</option>
-									<option value="UV Pro">AquaPure UV Pro</option>
-									<option value="Copper+">AquaPure Copper+</option>
-									<option value="Alkaline Max">AquaPure Alkaline Max</option>
-									<option value="Compact">AquaPure Compact</option>
-									<option value="Basic">AquaPure Basic</option>
-								</select>
-							</div>
+      {/* ========================================================
+          5. ANNUAL MAINTENANCE CONTRACT (AMC) PLANS
+         ======================================================== */}
+      <section id="amc" className="py-20 bg-slate-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-extrabold uppercase tracking-wider">
+              Hassle-Free Ownership
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-heading mt-3 tracking-tight">
+              Annual Maintenance Care (AMC) Plans
+            </h2>
+            <p className="text-slate-600 text-sm sm:text-base mt-2">
+              Keep your purifier performing like brand new with transparent, scheduled filter replacements.
+            </p>
+          </div>
 
-							<button
-								type="submit"
-								className="w-full bg-sky-500 text-white py-4 rounded-lg font-semibold text-lg hover:bg-sky-600 transition shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
-							>
-								<span className="material-icons">calendar_today</span>
-								Book Free Demo
-							</button>
-							
-							<p className="text-center text-slate-500 text-sm">
-								Our executive will contact you within 24 hours to schedule the demo
-							</p>
-						</form>
-					</div>
-				</div>
-			</section>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Plan 1 */}
+            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span className="text-xs font-bold uppercase text-slate-400">Essential Care</span>
+                <h3 className="font-heading font-black text-2xl text-slate-900 mt-1">Basic PureCare</h3>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="font-heading font-black text-3xl text-slate-900">₹999</span>
+                  <span className="text-xs text-slate-500 font-medium">/ year</span>
+                </div>
+                <p className="text-xs text-slate-500 mt-2 pb-6 border-b border-slate-100">
+                  Ideal for low-usage households with municipal supply.
+                </p>
 
-			{/* Material Icons Font */}
-			<link
-				href="https://fonts.googleapis.com/icon?family=Material+Icons"
-				rel="stylesheet"
-			/>
-		</div>
-	);
+                <ul className="space-y-3 py-6 text-xs text-slate-600">
+                  <li className="flex items-center gap-2.5">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>2 Scheduled Preventive Service Visits</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>Free Sediment Pre-Filter Replacement</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>Full TDS & Water Hardness Testing</span>
+                  </li>
+                  <li className="flex items-center gap-2.5 text-slate-400">
+                    <span>✕ Electrical Parts Not Included</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                onClick={() => selectModelForDemo("Basic PureCare AMC")}
+                className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider rounded-xl transition"
+              >
+                Choose Basic Care
+              </button>
+            </div>
+
+            {/* Plan 2: Recommended */}
+            <div className="bg-white rounded-3xl p-8 border-2 border-sky-500 shadow-xl relative flex flex-col justify-between">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-sky-500 text-white text-[10px] font-extrabold uppercase px-3.5 py-1 rounded-full shadow-sm tracking-wider">
+                Most Popular
+              </div>
+
+              <div>
+                <span className="text-xs font-bold uppercase text-sky-600">Comprehensive</span>
+                <h3 className="font-heading font-black text-2xl text-slate-900 mt-1">PureCare Plus</h3>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="font-heading font-black text-3xl text-sky-600">₹1,999</span>
+                  <span className="text-xs text-slate-500 font-medium">/ year</span>
+                </div>
+                <p className="text-xs text-slate-500 mt-2 pb-6 border-b border-slate-100">
+                  Complete peace of mind covering all standard filters & visits.
+                </p>
+
+                <ul className="space-y-3 py-6 text-xs text-slate-700">
+                  <li className="flex items-center gap-2.5 font-medium">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>3 Periodic Service Visits Per Year</span>
+                  </li>
+                  <li className="flex items-center gap-2.5 font-medium">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>Sediment + Carbon + Post-Carbon Change</span>
+                  </li>
+                  <li className="flex items-center gap-2.5 font-medium">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>Unlimited Breakdown Calls</span>
+                  </li>
+                  <li className="flex items-center gap-2.5 font-medium">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>Free Membrane Sanitization</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                onClick={() => selectModelForDemo("PureCare Plus AMC")}
+                className="w-full py-3 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md transition"
+              >
+                Choose PureCare Plus
+              </button>
+            </div>
+
+            {/* Plan 3 */}
+            <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm flex flex-col justify-between">
+              <div>
+                <span className="text-xs font-bold uppercase text-purple-600">All-Inclusive</span>
+                <h3 className="font-heading font-black text-2xl text-slate-900 mt-1">PureCare Elite</h3>
+                <div className="mt-4 flex items-baseline gap-1">
+                  <span className="font-heading font-black text-3xl text-slate-900">₹2,999</span>
+                  <span className="text-xs text-slate-500 font-medium">/ year</span>
+                </div>
+                <p className="text-xs text-slate-500 mt-2 pb-6 border-b border-slate-100">
+                  Full zero-worry package including RO Membrane & UV Lamp.
+                </p>
+
+                <ul className="space-y-3 py-6 text-xs text-slate-600">
+                  <li className="flex items-center gap-2.5">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>Unlimited Emergency Breakdown Visits</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>100% Free RO Membrane Replacement</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>UV Lamp & Power SMPS Replacement</span>
+                  </li>
+                  <li className="flex items-center gap-2.5">
+                    <FaCheck className="text-emerald-500 shrink-0" />
+                    <span>Active Copper Mineralizer Refill</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                onClick={() => selectModelForDemo("PureCare Elite AMC")}
+                className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider rounded-xl transition"
+              >
+                Choose PureCare Elite
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          6. HIGH-CONVERSION DEMO BOOKING FORM
+         ======================================================== */}
+      <section id="demo-booking" className="py-20 bg-gradient-to-b from-white to-sky-50 border-t border-slate-200/60">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-3xl shadow-2xl border border-slate-200/80 p-6 sm:p-10 relative overflow-hidden">
+            {/* Trust Header */}
+            <div className="text-center max-w-2xl mx-auto mb-8">
+              <span className="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-extrabold uppercase tracking-wider">
+                100% Free At Your Doorstep
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-black text-slate-900 font-heading mt-3 tracking-tight">
+                Schedule Your Free In-Home Demo
+              </h2>
+              <p className="text-slate-600 text-xs sm:text-sm mt-1.5">
+                Our technician will test your tap water quality, demonstrate live mineral filtration, and answer all questions with zero purchase obligation.
+              </p>
+            </div>
+
+            {/* Reassurance Badges */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-8 text-center text-xs font-semibold text-slate-600">
+              <div className="bg-sky-50/70 p-3 rounded-xl border border-sky-100 flex items-center justify-center gap-2">
+                <FaCheckCircle className="text-sky-500" />
+                <span>Zero Obligation Visit</span>
+              </div>
+              <div className="bg-emerald-50/70 p-3 rounded-xl border border-emerald-100 flex items-center justify-center gap-2">
+                <FaFlask className="text-emerald-500" />
+                <span>Free TDS Water Report</span>
+              </div>
+              <div className="bg-purple-50/70 p-3 rounded-xl border border-purple-100 flex items-center justify-center gap-2">
+                <FaAward className="text-purple-500" />
+                <span>Certified Engineers</span>
+              </div>
+            </div>
+
+            {/* Success Toast */}
+            {formSuccess && (
+              <div className="mb-6 p-5 bg-emerald-50 border border-emerald-300 rounded-2xl flex items-start gap-3.5 text-emerald-900 animate-fade-in">
+                <FaCheckCircle className="text-2xl text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-bold text-base">Demonstration Booked Successfully!</h4>
+                  <p className="text-xs text-emerald-700 mt-1">
+                    Thank you! Our certified water engineer will call you shortly to confirm your preferred date and time slot.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Form */}
+            <form onSubmit={handleBookingSubmit} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Your Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Ramesh Kumar"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Phone Number *
+                  </label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="10-digit mobile number"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    Select Purifier Model
+                  </label>
+                  <select
+                    value={formData.model}
+                    onChange={(e) =>
+                      setFormData({ ...formData, model: e.target.value })
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition bg-white"
+                  >
+                    <option value="">AquaPure Copper+ Alkaline (Recommended)</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.name}>
+                        {p.name} — ₹{p.price.toLocaleString("en-IN")}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                    City / Area Address
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Bandra West, Mumbai"
+                    value={formData.address}
+                    onChange={(e) =>
+                      setFormData({ ...formData, address: e.target.value })
+                    }
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={formSubmitting}
+                className={`w-full py-4 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg flex items-center justify-center gap-2 text-white transition-all ${
+                  formSubmitting
+                    ? "bg-sky-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 hover:shadow-xl hover:-translate-y-0.5"
+                }`}
+              >
+                <FaCalendarCheck className="text-base" />
+                <span>
+                  {formSubmitting
+                    ? "Confirming Appointment..."
+                    : "Confirm My Free Demonstration"}
+                </span>
+              </button>
+
+              <p className="text-center text-slate-400 text-xs mt-2">
+                🔒 Your contact info is strictly confidential. No spam guaranteed.
+              </p>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      {/* ========================================================
+          7. FREQUENTLY ASKED QUESTIONS
+         ======================================================== */}
+      <section id="faq" className="py-20 bg-white border-t border-slate-200/60">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <span className="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-extrabold uppercase tracking-wider">
+              Got Questions?
+            </span>
+            <h2 className="text-3xl font-black text-slate-900 font-heading mt-3 tracking-tight">
+              Frequently Asked Questions
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            {faqs.map((faq, index) => {
+              const isOpen = activeFaq === index;
+              return (
+                <div
+                  key={index}
+                  className="rounded-2xl border border-slate-200/80 bg-slate-50/50 overflow-hidden transition"
+                >
+                  <button
+                    onClick={() => setActiveFaq(isOpen ? null : index)}
+                    className="w-full p-5 text-left flex items-center justify-between gap-4 font-heading font-bold text-slate-900 hover:text-sky-600 transition"
+                  >
+                    <span>{faq.q}</span>
+                    <FaChevronDown
+                      className={`text-xs text-slate-400 transition-transform duration-200 shrink-0 ${
+                        isOpen ? "rotate-180 text-sky-500" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isOpen && (
+                    <div className="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-200/60 pt-3">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 };
 
 export default Home;

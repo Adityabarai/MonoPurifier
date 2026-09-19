@@ -1,357 +1,489 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation, Outlet } from "react-router-dom"; // Add Outlet import
+import { Link, useNavigate, useLocation, Outlet } from "react-router-dom";
 import {
-	FaBars,
-	FaHome,
-	FaGlobe,
-	FaAngleDown,
-	FaAngleDoubleRight,
-	FaSignOutAlt,
-	FaCog,
-	FaTimes,
+  FaBars,
+  FaTimes,
+  FaTint,
+  FaBoxes,
+  FaPlusCircle,
+  FaPhoneAlt,
+  FaCog,
+  FaGlobe,
+  FaSignOutAlt,
+  FaBell,
+  FaSearch,
+  FaChevronRight,
+  FaCheckCircle,
+  FaExternalLinkAlt,
+  FaUserShield,
 } from "react-icons/fa";
-import AdityaBarai from "../../assets/image/AdityaBarai.png";
+import { HiOutlineSquares2X2 } from "react-icons/hi2";
+import { getLeads } from "../../services/api";
 
 const AdminNavbar = () => {
-	const [sidebarHidden, setSidebarHidden] = useState(false);
-	const [activeMenu, setActiveMenu] = useState(null);
-	const [activeSubMenu, setActiveSubMenu] = useState(null);
-	const [isMobile, setIsMobile] = useState(false);
-	const [userData, setUserData] = useState({
-		firstName: "",
-		lastName: "",
-		initials: "",
-	});
-	const navigate = useNavigate();
-	const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const [newLeadsCount, setNewLeadsCount] = useState(0);
+  const [userData, setUserData] = useState({
+    firstName: "Admin",
+    lastName: "User",
+    initials: "AU",
+    username: "admin",
+  });
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
-	// Handle responsive behavior
-	useEffect(() => {
-		const checkMobile = () => {
-			const mobile = window.innerWidth < 768;
-			setIsMobile(mobile);
-			if (mobile) {
-				setSidebarHidden(true);
-			} else {
-				setSidebarHidden(false);
-			}
-		};
+  const navigate = useNavigate();
+  const location = useLocation();
 
-		checkMobile();
-		window.addEventListener("resize", checkMobile);
-		return () => window.removeEventListener("resize", checkMobile);
-	}, []);
+  // Responsive mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 1024;
+      setIsMobile(mobile);
+      if (mobile) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
 
-	useEffect(() => {
-		const user = JSON.parse(
-			sessionStorage.getItem("adminUser") ||
-				localStorage.getItem("adminUser") ||
-				"{}"
-		);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
-		if (user && (user.firstname || user.lastname)) {
-			setUserData({
-				firstName: user.firstname || "",
-				lastName: user.lastname || "",
-				initials:
-					`${user.firstname?.[0] || ""}${
-						user.lastname?.[0] || ""
-					}`.toUpperCase() || "AB",
-			});
-		}
-	}, []);
+  // Close sidebar on mobile navigation
+  useEffect(() => {
+    if (isMobile) {
+      setSidebarOpen(false);
+    }
+  }, [location.pathname, isMobile]);
 
-	// Close sidebar when clicking outside on mobile
-	useEffect(() => {
-		const handleClickOutside = (event) => {
-			if (isMobile && !sidebarHidden) {
-				const sidebar = document.querySelector("aside");
-				const toggleButton = document.querySelector(
-					'button[aria-label="Toggle sidebar"]'
-				);
-				if (
-					sidebar &&
-					!sidebar.contains(event.target) &&
-					toggleButton &&
-					!toggleButton.contains(event.target)
-				) {
-					setSidebarHidden(true);
-				}
-			}
-		};
+  // Load User Data
+  useEffect(() => {
+    try {
+      const user = JSON.parse(
+        sessionStorage.getItem("adminUser") ||
+          localStorage.getItem("adminUser") ||
+          "{}"
+      );
+      if (user && (user.firstname || user.username)) {
+        setUserData({
+          firstName: user.firstname || "Admin",
+          lastName: user.lastname || "",
+          initials: `${user.firstname?.[0] || user.username?.[0] || "A"}${
+            user.lastname?.[0] || ""
+          }`.toUpperCase(),
+          username: user.username || "admin",
+        });
+      }
+    } catch (e) {
+      console.error("Error reading admin user data:", e);
+    }
+  }, []);
 
-		document.addEventListener("click", handleClickOutside);
-		return () => {
-			document.removeEventListener("click", handleClickOutside);
-		};
-	}, [sidebarHidden, isMobile]);
+  // Fetch count of pending leads for live badge
+  useEffect(() => {
+    const fetchLeadStats = async () => {
+      try {
+        const leads = await getLeads();
+        if (Array.isArray(leads)) {
+          const pending = leads.filter(
+            (l) => !l.status || l.status === "New" || l.status === "Demo Scheduled"
+          ).length;
+          setNewLeadsCount(pending);
+        }
+      } catch (err) {
+        // silent fallback
+      }
+    };
+    fetchLeadStats();
+  }, [location.pathname]);
 
-	// Close sidebar on route change for mobile
-	useEffect(() => {
-		if (isMobile) {
-			setSidebarHidden(true);
-		}
-	}, [location.pathname, isMobile]);
+  const handleLogout = () => {
+    if (window.confirm("Are you sure you want to log out of MonoPurifier Admin?")) {
+      localStorage.removeItem("adminUser");
+      localStorage.removeItem("adminToken");
+      sessionStorage.removeItem("adminUser");
+      sessionStorage.removeItem("adminToken");
+      navigate("/admin/login");
+    }
+  };
 
-	const handleLogout = () => {
-		if (window.confirm("Are you sure you want to log out?")) {
-			localStorage.removeItem("adminUser");
-			localStorage.removeItem("adminToken");
-			sessionStorage.removeItem("adminUser");
-			sessionStorage.removeItem("adminToken");
-			navigate("/admin/login");
-		}
-	};
+  // Navigation Items
+  const navSections = [
+    {
+      label: "OVERVIEW",
+      items: [
+        {
+          name: "Dashboard",
+          path: "/admin/dashboard",
+          icon: <HiOutlineSquares2X2 className="text-lg" />,
+          badge: null,
+        },
+      ],
+    },
+    {
+      label: "CATALOG MANAGEMENT",
+      items: [
+        {
+          name: "All Products",
+          path: "/admin/manageproducts",
+          icon: <FaBoxes className="text-base" />,
+          badge: null,
+        },
+        {
+          name: "Add New Product",
+          path: "/admin/addormodifyproducts",
+          icon: <FaPlusCircle className="text-base" />,
+          badge: null,
+        },
+      ],
+    },
+    {
+      label: "CRM & INQUIRIES",
+      items: [
+        {
+          name: "Customer Leads",
+          path: "/admin/leads",
+          icon: <FaPhoneAlt className="text-sm" />,
+          badge: newLeadsCount > 0 ? `${newLeadsCount} New` : null,
+          badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
+        },
+      ],
+    },
+    {
+      label: "SYSTEM",
+      items: [
+        {
+          name: "Back-Office Settings",
+          path: "/admin/settings",
+          icon: <FaCog className="text-base" />,
+          badge: null,
+        },
+      ],
+    },
+  ];
 
-	const toggleMenu = (menuNumber) => {
-		setActiveMenu(activeMenu === menuNumber ? null : menuNumber);
-		if (activeMenu !== menuNumber) {
-			setActiveSubMenu(null);
-		}
-	};
+  // Helper to determine current breadcrumb text
+  const getBreadcrumb = () => {
+    const p = location.pathname;
+    if (p.includes("manageproducts")) return "Catalog / All Products";
+    if (p.includes("addormodifyproducts")) return "Catalog / Add Product";
+    if (p.includes("leads")) return "CRM / Customer Inquiries & Demos";
+    if (p.includes("settings")) return "System / Settings";
+    return "Operations / Executive Dashboard";
+  };
 
-	const toggleSubMenu = (subMenuNumber) => {
-		setActiveSubMenu(activeSubMenu === subMenuNumber ? null : subMenuNumber);
-	};
+  return (
+    <div className="flex h-screen bg-slate-50 text-slate-800 font-sans antialiased overflow-hidden selection:bg-sky-500 selection:text-white">
+      {/* Mobile Backdrop Overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
 
-	const toggleSidebar = () => {
-		if (isMobile) {
-			setSidebarHidden(!sidebarHidden);
-		}
-	};
+      {/* Left Sidebar Dock */}
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 h-full w-[270px] bg-white border-r border-slate-200/80 z-50 flex flex-col justify-between transition-all duration-300 ease-in-out shrink-0 ${
+          sidebarOpen
+            ? "translate-x-0"
+            : "-translate-x-full lg:translate-x-0 lg:w-0 lg:overflow-hidden lg:border-none"
+        }`}
+      >
+        {/* Brand Header at very top */}
+        <div className="h-14 px-4 border-b border-slate-100 flex items-center justify-between shrink-0">
+          <Link
+            to="/admin/dashboard"
+            className="flex items-center gap-2.5 group"
+          >
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-600 via-sky-500 to-cyan-400 text-white flex items-center justify-center shadow-md shadow-sky-500/20 group-hover:scale-105 transition-transform duration-200">
+              <FaTint className="text-sm text-white" />
+            </div>
+            <div>
+              <span className="text-lg font-black tracking-tight text-slate-900 font-heading">
+                Mono<span className="text-sky-600">Purifier</span>
+              </span>
+              <span className="block text-[10px] tracking-widest uppercase font-bold text-sky-600 -mt-0.5">
+                Admin Console
+              </span>
+            </div>
+          </Link>
 
-	const handleNavigation = (path) => {
-		navigate(path);
-		if (isMobile) {
-			setSidebarHidden(true);
-		}
-	};
+          {isMobile && (
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+            >
+              <FaTimes className="text-base" />
+            </button>
+          )}
+        </div>
 
-	const menuItems = [
-		{
-			id: 1,
-			name: "Website",
-			icon: <FaGlobe className="inline mr-2" />,
-			subItems: [
-				{
-					id: 1,
-					name: "Products Management",
-					icon: <FaAngleDoubleRight className="inline mr-2" />,
-					items: [
-						{ name: "Add Products", path: "/admin/addormodifyproducts" },
-						{ name: "Manage Products", path: "/admin/manageproducts" },
-					],
-				},
-				{
-					id: 2,
-					name: "Feedback Management",
-					icon: <FaAngleDoubleRight className="inline mr-2" />,
-					items: [
-						{ name: "Add Review", path: "/admin/add-content" },
-						{ name: "Manage Review", path: "/admin/manage-content" },
-					],
-				},
-				{
-					id: 3,
-					name: "Membership",
-					icon: <FaAngleDoubleRight className="inline mr-2" />,
-					items: [
-						{
-							name: "Pending Members",
-							path: "/admin/pending-members?status=0",
-						},
-						{ name: "Manage Members", path: "/admin/manage-members?status=1" },
-					],
-				},
-				{
-					id: 4,
-					name: "CEAI CENTER",
-					icon: <FaAngleDoubleRight className="inline mr-2" />,
-					items: [{ name: "CEAI Query", path: "/admin/ceai-query" }],
-				},
-			],
-		},
-	];
+        {/* Navigation Links Area */}
+        <div className="flex-1 overflow-y-auto px-3.5 py-3.5 space-y-4">
+          {navSections.map((section, idx) => (
+            <div key={idx}>
+              <p className="px-3 text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                {section.label}
+              </p>
+              <nav className="space-y-1">
+                {section.items.map((item, itemIdx) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <Link
+                      key={itemIdx}
+                      to={item.path}
+                      className={`flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150 group ${
+                        isActive
+                          ? "bg-sky-50 text-sky-700 font-bold shadow-sm shadow-sky-100 border border-sky-100"
+                          : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/70"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <span
+                          className={`shrink-0 transition-colors ${
+                            isActive
+                              ? "text-sky-600"
+                              : "text-slate-400 group-hover:text-slate-600"
+                          }`}
+                        >
+                          {item.icon}
+                        </span>
+                        <span className="whitespace-nowrap truncate">{item.name}</span>
+                      </div>
 
-	return (
-		<div className="font-poppins bg-gradient-to-br from-blue-50 via-purple-50 to-blue-100 min-h-screen">
-			{/* Header */}
-			<header className="flex fixed top-0 w-full z-50 justify-between items-center shadow-md bg-white p-4">
-				<div className="flex gap-3 items-center">
-					{/* Show toggle button only on mobile */}
-					{isMobile && (
-						<button
-							onClick={toggleSidebar}
-							aria-label="Toggle sidebar"
-							className="bg-primary/20 rounded-md p-2 hover:bg-primary/30 transition-colors duration-200"
-						>
-							{sidebarHidden ? (
-								<FaBars className="text-2xl text-primary" />
-							) : (
-								<FaTimes className="text-2xl text-primary" />
-							)}
-						</button>
-					)}
+                      {item.badge && (
+                        <span
+                          className={`text-xs px-2.5 py-0.5 rounded-full font-bold border shrink-0 whitespace-nowrap ml-2 ${
+                            item.badgeColor || "bg-sky-100 text-sky-800 border-sky-200"
+                          }`}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
+          ))}
+        </div>
 
-					{/* Show sidebar toggle button on desktop only when needed (optional) */}
-					{!isMobile && <div className="w-10"></div>}
+        {/* Sidebar Bottom Card & User Bar */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50 space-y-2.5 shrink-0">
+          {/* System Status telemetry */}
+          <div className="px-3 py-2 rounded-xl bg-white border border-slate-200/70 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <span className="font-semibold text-slate-700">API Server</span>
+            </div>
+            <span className="font-mono text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+              Port 5000
+            </span>
+          </div>
 
-					<img
-						src={AdityaBarai}
-						alt="CEAI Logo"
-						className="h-[70px] w-auto max-w-[300px] object-contain"
-					/>
-				</div>
+          {/* Quick Profile Capsule */}
+          <div className="flex items-center justify-between px-1.5 pt-0.5">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">
+                <FaUserShield className="text-xs" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-800 leading-tight">
+                  {userData.firstName}
+                </p>
+                <p className="text-xs text-slate-400">Super Admin</p>
+              </div>
+            </div>
 
-				<div className="flex items-center space-x-4">
-					<div className="flex items-center space-x-3">
-						<div className="flex justify-center items-center rounded-full bg-red-500 text-white w-10 h-10 font-semibold">
-							{userData.initials}
-						</div>
-						<span className="font-medium text-gray-800 hidden md:block">
-							{userData.firstName} {userData.lastName}
-						</span>
+            <button
+              onClick={handleLogout}
+              title="Log out"
+              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition"
+            >
+              <FaSignOutAlt className="text-sm" />
+            </button>
+          </div>
+        </div>
+      </aside>
 
-						<button
-							onClick={handleLogout}
-							className="flex items-center gap-2 px-4 py-2 text-red-600 font-semibold hover:bg-red-50 rounded-lg transition-all duration-200 hover:shadow-sm"
-						>
-							<FaSignOutAlt /> <span className="hidden md:inline">Logout</span>
-						</button>
-					</div>
-				</div>
-			</header>
+      {/* Right Content Area (Header + Main) */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Top Header Bar */}
+        <header className="h-14 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 md:px-6 flex items-center justify-between shadow-[0_1px_3px_rgba(0,0,0,0.02)] shrink-0 z-30">
+          {/* Left: Hamburger & Breadcrumbs */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              aria-label="Toggle navigation menu"
+              className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-sky-500/20"
+            >
+              <FaBars className="text-base" />
+            </button>
 
-			{/* Overlay for mobile */}
-			{!sidebarHidden && isMobile && (
-				<div
-					className="fixed inset-0 bg-black bg-opacity-50 z-30"
-					onClick={() => setSidebarHidden(true)}
-				/>
-			)}
+            {/* Breadcrumb Trail */}
+            <div className="hidden sm:flex items-center gap-2 text-sm">
+              <span className="font-semibold text-slate-400">Admin</span>
+              <FaChevronRight className="text-xs text-slate-300" />
+              <span className="font-bold text-slate-800 tracking-tight">
+                {getBreadcrumb()}
+              </span>
+            </div>
+          </div>
 
-			{/* Sidebar */}
-			<aside
-				className={`fixed pt-28 shadow-lg transition-all duration-300 top-0 bottom-0 w-72 p-4 z-40 bg-white overflow-y-auto ${
-					sidebarHidden && isMobile ? "-left-72" : "left-0"
-				} ${!isMobile ? "left-0" : ""}`} // Always visible on desktop
-			>
-				{/* Show close button only on mobile when sidebar is open */}
-				{isMobile && !sidebarHidden && (
-					<button
-						onClick={() => setSidebarHidden(true)}
-						className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-						aria-label="Close sidebar"
-					>
-						<FaTimes className="text-xl" />
-					</button>
-				)}
+          {/* Center: Search Bar trigger */}
+          <div className="hidden md:flex items-center max-w-sm w-full mx-4">
+            <div className="relative w-full">
+              <FaSearch className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs" />
+              <input
+                type="text"
+                readOnly
+                onClick={() => navigate("/admin/manageproducts")}
+                placeholder="Search products or leads... (Quick find)"
+                className="w-full pl-9 pr-4 py-2 text-sm bg-slate-100/80 hover:bg-slate-100 text-slate-700 placeholder-slate-400 rounded-xl border border-transparent focus:border-sky-400 focus:bg-white focus:outline-none transition cursor-pointer"
+              />
+            </div>
+          </div>
 
-				{/* Home Button */}
-				<button
-					onClick={() => handleNavigation("/admin/dashboard")}
-					className="w-full p-3 bg-primary text-white mb-3 rounded-md hover:bg-[#1E40AF] transition-colors duration-200 text-left flex items-center"
-				>
-					<FaHome className="inline mr-3" /> Home
-				</button>
+          {/* Right Action Icons & User Profile */}
+          <div className="flex items-center gap-2 md:gap-3">
+            {/* Live Storefront Quick Link */}
+            <a
+              href="/"
+              target="_blank"
+              rel="noreferrer"
+              title="Open Public Customer Storefront in new tab"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-semibold text-sky-700 bg-sky-50 hover:bg-sky-100 border border-sky-100 transition"
+            >
+              <FaGlobe className="text-sky-500 text-sm" />
+              <span>Storefront</span>
+              <FaExternalLinkAlt className="text-xs text-sky-400" />
+            </a>
 
-				{/* Main Menu Items */}
-				{menuItems.map((menu) => (
-					<div key={menu.id} className="mb-2">
-						<button
-							onClick={() => toggleMenu(menu.id)}
-							className={`w-full p-3 rounded-md text-left flex justify-between items-center transition-all duration-200 ${
-								activeMenu === menu.id
-									? "bg-primary text-white"
-									: "text-gray-800 hover:bg-[#1E40AF] hover:text-white"
-							}`}
-						>
-							<span className="flex items-center">
-								{menu.icon} {menu.name}
-							</span>
-							<FaAngleDown
-								className={`transition-transform duration-200 ${
-									activeMenu === menu.id ? "rotate-180" : ""
-								}`}
-							/>
-						</button>
+            {/* "+ Add Product" shortcut */}
+            <Link
+              to="/admin/addormodifyproducts"
+              className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 shadow-sm shadow-sky-500/20 transition"
+            >
+              <FaPlusCircle className="text-sm" />
+              <span>Add Model</span>
+            </Link>
 
-						{/* Submenu */}
-						{activeMenu === menu.id && (
-							<div className="bg-primary/10 rounded-md mt-1 space-y-1 p-1">
-								{menu.subItems.map((subItem) => (
-									<div key={subItem.id}>
-										<button
-											onClick={() => toggleSubMenu(subItem.id)}
-											className={`w-full p-2 rounded-md text-left flex justify-between items-center transition-all duration-200 ${
-												activeSubMenu === subItem.id
-													? "bg-primary/30 text-gray-800"
-													: "text-gray-700 hover:bg-[#1E40AF]/20"
-											}`}
-										>
-											<span className="flex items-center">
-												{subItem.icon} {subItem.name}
-											</span>
-											<FaAngleDown
-												className={`transition-transform duration-200 ${
-													activeSubMenu === subItem.id ? "rotate-180" : ""
-												}`}
-											/>
-										</button>
+            {/* Notification Indicator */}
+            <Link
+              to="/admin/leads"
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 relative transition"
+              title={`${newLeadsCount} Pending Demonstration Inquiries`}
+            >
+              <FaBell className="text-base" />
+              {newLeadsCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-sky-600"></span>
+                </span>
+              )}
+            </Link>
 
-										{/* Sub-submenu Items */}
-										{activeSubMenu === subItem.id && (
-											<div className="bg-primary/20 rounded-md mt-1 ml-2">
-												{subItem.items.map((item, index) => (
-													<Link
-														key={index}
-														to={item.path}
-														onClick={() => {
-															if (isMobile) setSidebarHidden(true);
-														}}
-														className="block p-2 pl-6 hover:bg-[#1E40AF]/30 text-gray-800 transition-colors duration-200 rounded-md"
-													>
-														{item.name}
-													</Link>
-												))}
-											</div>
-										)}
-									</div>
-								))}
-							</div>
-						)}
-					</div>
-				))}
+            <div className="h-5 w-px bg-slate-200 mx-0.5"></div>
 
-				{/* Additional Static Menus */}
-				<button
-					onClick={() => handleNavigation("/admin/settings")}
-					className="w-full p-3 rounded-md text-left text-gray-800 hover:bg-[#1E40AF] hover:text-white transition-all duration-200 mt-2 flex items-center"
-				>
-					<FaCog className="inline mr-3" /> Settings
-				</button>
-			</aside>
+            {/* User Profile Capsule */}
+            <div className="relative">
+              <button
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                className="flex items-center gap-2.5 p-1 rounded-xl hover:bg-slate-100 transition"
+              >
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-sm">
+                  {userData.initials}
+                </div>
+                <div className="hidden lg:block text-left leading-tight">
+                  <p className="font-bold text-slate-800 text-sm">
+                    {userData.firstName}
+                  </p>
+                </div>
+              </button>
 
-			{/* Main Content Area - FIXED: Added Outlet to render child routes */}
-			<main
-				className={`pt-20 transition-all duration-300 pb-16 ${
-					!isMobile ? "ml-72" : "ml-0"
-				}`}
-			>
-				<div className="p-4">
-					{/* This Outlet will render the child routes (AdminDashboard, etc.) */}
-					<Outlet />
-				</div>
-			</main>
+              {/* Dropdown Menu */}
+              {showUserDropdown && (
+                <div
+                  className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200/80 p-2 z-50 animate-slide-up"
+                  onMouseLeave={() => setShowUserDropdown(false)}
+                >
+                  <div className="px-3 py-2.5 border-b border-slate-100">
+                    <p className="text-sm font-bold text-slate-800">
+                      {userData.firstName} {userData.lastName}
+                    </p>
+                    <p className="text-xs text-slate-400 font-mono mt-0.5">
+                      @{userData.username}
+                    </p>
+                  </div>
 
-			{/* Footer */}
-			<footer className="bg-primary py-4  bottom-0 w-full z-50 overflow-auto">
-				<p className="text-lg text-white text-center">
-					Powered By Aditya Barai
-				</p>
-			</footer>
-		</div>
-	);
+                  <div className="py-1.5 space-y-0.5">
+                    <Link
+                      to="/admin/settings"
+                      onClick={() => setShowUserDropdown(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition font-medium"
+                    >
+                      <FaCog className="text-slate-400 text-sm" />
+                      <span>Settings</span>
+                    </Link>
+                    <a
+                      href="/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 rounded-xl transition font-medium"
+                    >
+                      <FaGlobe className="text-slate-400 text-sm" />
+                      <span>Storefront</span>
+                    </a>
+                  </div>
+
+                  <div className="pt-1.5 border-t border-slate-100">
+                    <button
+                      onClick={() => {
+                        setShowUserDropdown(false);
+                        handleLogout();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-rose-600 hover:bg-rose-50 rounded-xl transition font-semibold"
+                    >
+                      <FaSignOutAlt className="text-rose-500 text-sm" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content Viewport */}
+        <main className="flex-1 overflow-y-auto bg-slate-50 px-4 py-3 md:px-6 md:py-3.5 flex flex-col justify-between">
+          <div className="max-w-7xl mx-auto w-full pb-3">
+            <Outlet />
+          </div>
+
+          {/* Discreet SaaS Footer */}
+          <footer className="max-w-7xl mx-auto w-full pt-3 border-t border-slate-200/60 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-2">
+            <p>
+              © {new Date().getFullYear()}{" "}
+              <span className="font-semibold text-slate-600">MonoPurifier</span> • Enterprise Water Purification Systems
+            </p>
+            <div className="flex items-center gap-4 text-[10px]">
+              <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                <FaCheckCircle className="text-emerald-500" /> Operational
+              </span>
+              <span>v2.4.0</span>
+            </div>
+          </footer>
+        </main>
+      </div>
+    </div>
+  );
 };
 
 export default AdminNavbar;

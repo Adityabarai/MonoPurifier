@@ -1,300 +1,167 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import {
+  FaTint,
+  FaPhoneAlt,
+  FaShieldAlt,
+  FaBars,
+  FaTimes,
+  FaChevronRight,
+  FaCheckCircle,
+} from "react-icons/fa";
 
 function Navbar() {
-	const [isMenuOpen, setIsMenuOpen] = useState(false);
-	const [activeDropdown, setActiveDropdown] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-	// ====== SCROLL HIDE/SHOW STATES ======
-	const [showNavbar, setShowNavbar] = useState(true);
-	const [lastScrollY, setLastScrollY] = useState(0);
-	// ====================================
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-	const toggleDropdown = (dropdown) => {
-		setActiveDropdown(activeDropdown === dropdown ? null : dropdown);
-	};
+  const navLinks = [
+    { name: "Purifier Models", href: "#products" },
+    { name: "Technology", href: "#technology" },
+    { name: "Why Us", href: "#why-us" },
+    { name: "AMC Plans", href: "#amc" },
+    { name: "FAQ", href: "#faq" },
+  ];
 
-	// ====== SCROLL HIDE/SHOW LOGIC ======
-	useEffect(() => {
-		const handleScroll = () => {
-			const currentScrollY = window.scrollY;
+  return (
+    <nav
+      className={`sticky top-0 z-50 transition-all duration-300 font-sans ${
+        scrolled
+          ? "bg-white/90 backdrop-blur-md shadow-md py-3 border-b border-slate-100"
+          : "bg-white/95 backdrop-blur-sm py-4 border-b border-slate-200/80"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center">
+          {/* Brand Logo */}
+          <a href="#home" className="flex items-center gap-2.5 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 via-sky-500 to-cyan-400 text-white flex items-center justify-center shadow-md shadow-sky-500/25 group-hover:scale-105 transition-transform duration-200">
+              <FaTint className="text-xl text-white" />
+            </div>
+            <div>
+              <span className="text-xl md:text-2xl font-black tracking-tight text-slate-900 font-heading">
+                Mono<span className="text-sky-600">Purifier</span>
+              </span>
+              <span className="block text-[9px] tracking-widest uppercase font-bold text-slate-400 -mt-1">
+                Pure Health Technology
+              </span>
+            </div>
+          </a>
 
-			if (currentScrollY > lastScrollY && currentScrollY > 60) {
-				// scrolling down
-				setShowNavbar(false);
-			} else {
-				// scrolling up
-				setShowNavbar(true);
-			}
+          {/* Desktop Navigation Links */}
+          <div className="hidden lg:flex items-center space-x-7">
+            {navLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                className="text-sm font-semibold text-slate-700 hover:text-sky-600 transition-colors duration-150 relative py-1 hover:after:w-full after:w-0 after:h-0.5 after:bg-sky-500 after:absolute after:bottom-0 after:left-0 after:transition-all after:duration-200"
+              >
+                {link.name}
+              </a>
+            ))}
+          </div>
 
-			setLastScrollY(currentScrollY);
-		};
+          {/* Right Actions & CTAs */}
+          <div className="hidden md:flex items-center space-x-3.5">
+            {/* Toll Free Helpline */}
+            <a
+              href="tel:1800666678"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-slate-600 hover:text-sky-600 hover:bg-sky-50 transition text-xs font-semibold"
+              title="Customer Helpline"
+            >
+              <div className="w-6 h-6 rounded-full bg-sky-100 text-sky-600 flex items-center justify-center">
+                <FaPhoneAlt className="text-[10px]" />
+              </div>
+              <span>1800-MONO-PURE</span>
+            </a>
 
-		window.addEventListener("scroll", handleScroll);
-		return () => window.removeEventListener("scroll", handleScroll);
-	}, [lastScrollY]);
-	// ====================================
+            {/* Book Free Demo Button */}
+            <a
+              href="#demo-booking"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white text-xs font-bold uppercase tracking-wider rounded-xl shadow-md shadow-sky-500/20 hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5"
+            >
+              <FaCheckCircle className="text-xs" />
+              <span>Book Free Demo</span>
+            </a>
 
-	return (
-		<nav
-			className={`bg-white shadow-md sticky top-0 z-50 transition-transform duration-300 ${
-				showNavbar ? "translate-y-0" : "-translate-y-full"
-			}`}
-		>
-			<div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-				<div className="flex justify-between items-center h-16">
-					{/* Logo */}
-					<div className="flex-shrink-0">
-						<div className="text-2xl font-bold">
-							<span className="text-sky-500">MO</span>
-							<span className="text-red-600">NA</span>
-						</div>
-					</div>
+            {/* Admin Back-Office Link */}
+            <Link
+              to="/admin/login"
+              className="p-2 text-slate-400 hover:text-sky-600 hover:bg-slate-100 rounded-xl transition"
+              title="Admin Portal"
+            >
+              <FaShieldAlt className="text-base" />
+            </Link>
+          </div>
 
-					{/* Desktop Menu */}
-					<div className="hidden md:flex items-center space-x-8">
-						<a
-							href="#home"
-							className="text-slate-900 hover:text-sky-500 transition"
-						>
-							Home
-						</a>
-						<a
-							href="#about"
-							className="text-slate-900 hover:text-sky-500 transition"
-						>
-							About
-						</a>
+          {/* Mobile Menu Button */}
+          <div className="flex md:hidden items-center gap-2">
+            <a
+              href="#demo-booking"
+              className="px-3 py-1.5 bg-sky-500 text-white text-xs font-bold rounded-lg shadow-sm"
+            >
+              Free Demo
+            </a>
+            <button
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label="Toggle navigation menu"
+              className="p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition"
+            >
+              {isMenuOpen ? <FaTimes className="text-xl" /> : <FaBars className="text-xl" />}
+            </button>
+          </div>
+        </div>
+      </div>
 
-						{/* Products Dropdown */}
-						<div className="relative">
-							<button
-								onClick={() => toggleDropdown("products")}
-								className="flex items-center text-slate-900 hover:text-sky-500 transition"
-							>
-								Products
-								<span className="material-icons text-sm ml-1">expand_more</span>
-							</button>
-							{activeDropdown === "products" && (
-								<div className="absolute top-full left-0 mt-2 w-48 bg-white shadow-lg rounded-md py-2">
-									<a
-										href="#ro"
-										className="block px-4 py-2 text-slate-900 hover:bg-sky-100"
-									>
-										RO Purifiers
-									</a>
-									<a
-										href="#uv"
-										className="block px-4 py-2 text-slate-900 hover:bg-sky-100"
-									>
-										UV Purifiers
-									</a>
-									<a
-										href="#filters"
-										className="block px-4 py-2 text-slate-900 hover:bg-sky-100"
-									>
-										Filters
-									</a>
-								</div>
-							)}
-						</div>
+      {/* Mobile Drawer */}
+      {isMenuOpen && (
+        <div className="md:hidden bg-white/95 backdrop-blur-lg border-b border-slate-200 px-4 pt-3 pb-6 space-y-3 animate-slide-up">
+          <div className="space-y-1">
+            {navLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                onClick={() => setIsMenuOpen(false)}
+                className="flex items-center justify-between px-3 py-2.5 rounded-xl text-slate-800 font-semibold hover:bg-sky-50 hover:text-sky-600 transition"
+              >
+                <span>{link.name}</span>
+                <FaChevronRight className="text-xs text-slate-300" />
+              </a>
+            ))}
+          </div>
 
-						{/* Services Dropdown */}
-						<div className="relative">
-							<button
-								onClick={() => toggleDropdown("services")}
-								className="flex items-center text-slate-900 hover:text-sky-500 transition"
-							>
-								Services
-								<span className="material-icons text-sm ml-1">expand_more</span>
-							</button>
-							{activeDropdown === "services" && (
-								<div className="absolute top-full left-0 mt-2 w-48 bg-white shadow-lg rounded-md py-2">
-									<a
-										href="#installation"
-										className="block px-4 py-2 text-slate-900 hover:bg-sky-100"
-									>
-										Installation
-									</a>
-									<a
-										href="#repair"
-										className="block px-4 py-2 text-slate-900 hover:bg-sky-100"
-									>
-										Repair
-									</a>
-									<a
-										href="#amc"
-										className="block px-4 py-2 text-slate-900 hover:bg-sky-100"
-									>
-										AMC (Maintenance)
-									</a>
-								</div>
-							)}
-						</div>
+          <div className="pt-3 border-t border-slate-100 space-y-2">
+            <a
+              href="tel:1800666678"
+              className="flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-slate-600 bg-slate-50 rounded-xl"
+            >
+              <FaPhoneAlt className="text-sky-500 text-xs" />
+              <span>Helpline: 1800-MONO-PURE</span>
+            </a>
 
-						<a
-							href="#contact"
-							className="text-slate-900 hover:text-sky-500 transition"
-						>
-							Contact
-						</a>
-
-						<a
-							href="#demo"
-							className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition"
-						>
-							Book Demo
-						</a>
-					</div>
-
-					{/* Right Icons */}
-					<div className="hidden md:flex items-center space-x-4">
-						<button className="relative text-slate-900 hover:text-sky-500 transition">
-							<span className="material-icons">shopping_cart</span>
-							<span className="absolute -top-2 -right-2 bg-sky-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-								0
-							</span>
-						</button>
-						<button className="flex items-center space-x-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800 transition">
-							<span className="material-icons text-xl">person</span>
-							<span>Login</span>
-						</button>
-					</div>
-
-					{/* Mobile Menu Button */}
-					<div className="md:hidden">
-						<button
-							onClick={() => setIsMenuOpen(!isMenuOpen)}
-							className="text-slate-900 hover:text-sky-500"
-						>
-							<span className="material-icons">
-								{isMenuOpen ? "close" : "menu"}
-							</span>
-						</button>
-					</div>
-				</div>
-			</div>
-
-			{/* Mobile Menu */}
-			{isMenuOpen && (
-				<div className="md:hidden bg-sky-100">
-					<div className="px-2 pt-2 pb-3 space-y-1">
-						<a
-							href="#home"
-							className="block px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-						>
-							Home
-						</a>
-
-						{/* Products Mobile Dropdown */}
-						<div>
-							<button
-								onClick={() => toggleDropdown("products-mobile")}
-								className="w-full text-left flex justify-between items-center px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-							>
-								Products
-								<span className="material-icons text-sm">expand_more</span>
-							</button>
-							{activeDropdown === "products-mobile" && (
-								<div className="pl-6 space-y-1">
-									<a
-										href="#ro"
-										className="block px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-									>
-										RO Purifiers
-									</a>
-									<a
-										href="#uv"
-										className="block px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-									>
-										UV Purifiers
-									</a>
-									<a
-										href="#filters"
-										className="block px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-									>
-										Filters
-									</a>
-								</div>
-							)}
-						</div>
-
-						<a
-							href="#about"
-							className="block px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-						>
-							About
-						</a>
-
-						{/* Services Mobile Dropdown */}
-						<div>
-							<button
-								onClick={() => toggleDropdown("services-mobile")}
-								className="w-full text-left flex justify-between items-center px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-							>
-								Services
-								<span className="material-icons text-sm">expand_more</span>
-							</button>
-							{activeDropdown === "services-mobile" && (
-								<div className="pl-6 space-y-1">
-									<a
-										href="#installation"
-										className="block px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-									>
-										Installation
-									</a>
-									<a
-										href="#repair"
-										className="block px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-									>
-										Repair
-									</a>
-									<a
-										href="#amc"
-										className="block px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-									>
-										AMC (Maintenance)
-									</a>
-								</div>
-							)}
-						</div>
-
-						<a
-							href="#contact"
-							className="block px-3 py-2 text-slate-900 hover:bg-sky-300 rounded-md"
-						>
-							Contact
-						</a>
-
-						<a
-							href="#demo"
-							className="block px-3 py-2 bg-red-600 text-white hover:bg-red-700 rounded-md text-center"
-						>
-							Book Demo
-						</a>
-
-						<div className="flex items-center justify-around pt-4 border-t border-sky-300">
-							<button className="relative text-slate-900 hover:text-sky-500">
-								<span className="material-icons">shopping_cart</span>
-								<span className="absolute -top-2 -right-2 bg-sky-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-									0
-								</span>
-							</button>
-							<button className="flex items-center space-x-2 bg-slate-900 text-white px-4 py-2 rounded-md hover:bg-slate-800">
-								<span className="material-icons text-xl">person</span>
-								<span>Login</span>
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
-
-			{/* Material Icons Font */}
-			<link
-				href="https://fonts.googleapis.com/icon?family=Material+Icons"
-				rel="stylesheet"
-			/>
-		</nav>
-	);
+            <Link
+              to="/admin/login"
+              onClick={() => setIsMenuOpen(false)}
+              className="flex items-center justify-between px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 rounded-xl"
+            >
+              <span className="flex items-center gap-2">
+                <FaShieldAlt className="text-sky-500 text-xs" />
+                <span>Admin Login</span>
+              </span>
+              <FaChevronRight className="text-[10px] text-slate-400" />
+            </Link>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
 }
 
 export default Navbar;

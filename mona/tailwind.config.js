@@ -2,6 +2,11 @@ module.exports = {
 	content: ["./src/**/*.{js,jsx,ts,tsx}", "./public/index.html"],
 	theme: {
 		extend: {
+			fontFamily: {
+				sans: ["'Plus Jakarta Sans'", "sans-serif"],
+				heading: ["'Outfit'", "sans-serif"],
+				poppins: ["'Poppins'", "sans-serif"],
+			},
 			colors: {
 				primary: "#3B82F6",
 				secondary: "#10B981",
