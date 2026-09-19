@@ -13,6 +13,10 @@ import {
   FaTruck,
   FaMicrochip,
   FaCheck,
+  FaLayerGroup,
+  FaFilter,
+  FaWifi,
+  FaBuilding,
 } from "react-icons/fa";
 import { getProducts, submitLead, getHeroImage, SERVER_URL } from "../../services/api";
 
@@ -65,6 +69,27 @@ const Home = () => {
     if (name.includes("alkaline")) return "/products/aquapure_alkaline_max.png";
     if (name.includes("basic")) return "/products/aquapure_basic.png";
     return "/products/aquapure_ro_elite.png";
+  };
+
+  const getCategoryIcon = (category) => {
+    switch (category) {
+      case "All":
+        return <FaLayerGroup className="text-xs" />;
+      case "RO Purifier":
+        return <FaFilter className="text-xs" />;
+      case "UV Purifier":
+        return <FaShieldAlt className="text-xs" />;
+      case "Alkaline RO":
+        return <FaTint className="text-xs" />;
+      case "Smart RO":
+        return <FaWifi className="text-xs" />;
+      case "Wall Mount RO":
+        return <FaMicrochip className="text-xs" />;
+      case "Commercial RO":
+        return <FaBuilding className="text-xs" />;
+      default:
+        return <FaTint className="text-xs" />;
+    }
   };
 
   // Fetch real-time products from API
@@ -685,40 +710,82 @@ const Home = () => {
          ======================================================== */}
       <section id="products" className="py-20 bg-slate-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-            <div>
-              <span className="px-3 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-extrabold uppercase tracking-wider">
-                Full Water Purifier Range
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 font-heading mt-3 tracking-tight">
-                Choose the Ideal Purifier for Your Home
-              </h2>
-              <p className="text-slate-500 text-sm mt-1">
-                All units certified with 100% Food-Grade Tanks & 1 Year Comprehensive Onsite Warranty.
-              </p>
-            </div>
+          {/* Section Heading */}
+          <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-10">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-sky-100 text-sky-700 rounded-full text-xs font-extrabold uppercase tracking-wider shadow-xs">
+              <FaTint className="text-sky-500 text-xs" /> Full Water Purifier Range
+            </span>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 font-heading mt-3 tracking-tight">
+              Choose the Ideal Purifier for Your Home
+            </h2>
+            <p className="text-slate-600 text-sm sm:text-base mt-2">
+              All units certified with 100% Food-Grade Tanks, Zero-Toxin Bio-Mineralizer & 1 Year Comprehensive Onsite Warranty.
+            </p>
+          </div>
 
-            {/* Category Filter Chips */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-colors duration-150 ${
-                    selectedCategory === cat
-                      ? "bg-slate-900 text-white shadow-sm"
-                      : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-100"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+          {/* Premium Filter Pill Navigation Bar */}
+          <div className="flex items-center justify-center mb-10 sm:mb-12">
+            <div className="w-full sm:w-auto overflow-x-auto no-scrollbar py-1 px-1">
+              <div className="inline-flex sm:flex sm:flex-wrap items-center justify-start sm:justify-center gap-2 sm:gap-2.5 p-1.5 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/90 shadow-sm max-w-5xl mx-auto">
+                {categories.map((cat) => {
+                  const count =
+                    cat === "All"
+                      ? products.length
+                      : products.filter((p) => p.category === cat).length;
+                  const isSelected = selectedCategory === cat;
+
+                  return (
+                    <button
+                      key={cat}
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`whitespace-nowrap px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center gap-2 cursor-pointer select-none ${
+                        isSelected
+                          ? "bg-slate-900 text-white shadow-md shadow-slate-900/25 scale-[1.02]"
+                          : "bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200/80 hover:scale-[1.01]"
+                      }`}
+                    >
+                      <span className={isSelected ? "text-sky-400" : "text-slate-400"}>
+                        {getCategoryIcon(cat)}
+                      </span>
+                      <span>{cat}</span>
+                      <span
+                        className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full transition-colors ${
+                          isSelected
+                            ? "bg-sky-500 text-white"
+                            : "bg-slate-200/80 text-slate-600"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProducts.map((p) => {
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-16 bg-white rounded-3xl border border-slate-200 p-8 max-w-md mx-auto shadow-sm">
+              <div className="w-14 h-14 bg-sky-50 text-sky-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3">
+                <FaFilter />
+              </div>
+              <h3 className="font-heading font-black text-lg text-slate-900">
+                No purifiers in {selectedCategory}
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                Explore all our models to find the ideal match for your water source.
+              </p>
+              <button
+                onClick={() => setSelectedCategory("All")}
+                className="mt-4 px-5 py-2.5 bg-slate-900 hover:bg-sky-600 text-white text-xs font-bold rounded-xl transition duration-200 shadow-md"
+              >
+                View All Models
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {filteredProducts.map((p) => {
               const discountPercent = Math.round(
                 ((p.originalPrice - p.price) / p.originalPrice) * 100
               );
@@ -831,7 +898,8 @@ const Home = () => {
                 </div>
               );
             })}
-          </div>
+            </div>
+          )}
         </div>
       </section>
 
