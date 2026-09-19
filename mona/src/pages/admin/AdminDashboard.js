@@ -306,10 +306,10 @@ const AdminDashboard = () => {
         </div>
 
         <Link
-          to="/admin/home-image"
+          to="/admin/manageproducts"
           className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-white hover:bg-sky-50 text-sky-700 font-bold text-xs uppercase tracking-wider rounded-xl shadow-sm transition whitespace-nowrap self-start sm:self-auto"
         >
-          <span>Update Hero Image</span>
+          <span>Manage in Products Catalog</span>
           <FaArrowRight className="text-xs" />
         </Link>
       </div>

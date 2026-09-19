@@ -16,7 +16,6 @@ import {
   FaCheckCircle,
   FaExternalLinkAlt,
   FaUserShield,
-  FaImage,
 } from "react-icons/fa";
 import { HiOutlineSquares2X2 } from "react-icons/hi2";
 import { getLeads } from "../../services/api";
@@ -150,18 +149,6 @@ const AdminNavbar = () => {
           icon: <FaPhoneAlt className="text-sm" />,
           badge: newLeadsCount > 0 ? `${newLeadsCount} New` : null,
           badgeColor: "bg-amber-100 text-amber-800 border-amber-200",
-        },
-      ],
-    },
-    {
-      label: "STOREFRONT / HOME",
-      items: [
-        {
-          name: "Home Main Image",
-          path: "/admin/home-image",
-          icon: <FaImage className="text-base" />,
-          badge: "Hero",
-          badgeColor: "bg-sky-100 text-sky-700 border-sky-200",
         },
       ],
     },

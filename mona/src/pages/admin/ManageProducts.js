@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   FaSearch,
@@ -22,9 +22,17 @@ import {
   FaBoxes,
   FaCheck,
   FaTimes,
+  FaImage,
 } from "react-icons/fa";
 import axios from "axios";
-import { API_BASE_URL, SERVER_URL } from "../../services/api";
+import {
+  API_BASE_URL,
+  SERVER_URL,
+  getHeroImage,
+  updateHeroImageUrl,
+  uploadHeroImageFile,
+  resetHeroImage,
+} from "../../services/api";
 
 const ManageProducts = () => {
   const navigate = useNavigate();
@@ -84,6 +92,108 @@ const ManageProducts = () => {
   const [permanentDelete, setPermanentDelete] = useState(false);
   const [showRestoreModal, setShowRestoreModal] = useState(false);
 
+  // Home Page Main Image States
+  const [heroImageUrl, setHeroImageUrl] = useState("");
+  const [showHeroModal, setShowHeroModal] = useState(false);
+  const [heroSaving, setHeroSaving] = useState(false);
+  const [heroFile, setHeroFile] = useState(null);
+  const [heroPreview, setHeroPreview] = useState(null);
+  const [heroUrlInput, setHeroUrlInput] = useState("");
+  const heroFileInputRef = useRef(null);
+
+  const fetchHeroImage = useCallback(async () => {
+    try {
+      const res = await getHeroImage();
+      if (res?.image_url) {
+        setHeroImageUrl(res.image_url);
+      }
+    } catch (_) {}
+  }, []);
+
+  const isHeroProduct = useCallback(
+    (product) => {
+      if (!heroImageUrl || !product?.image_url) return false;
+      if (product.image_url === heroImageUrl) return true;
+      const pName = product.image_url.split("/").pop();
+      const hName = heroImageUrl.split("/").pop();
+      return Boolean(pName && hName && pName === hName);
+    },
+    [heroImageUrl]
+  );
+
+  const handleSetProductAsHero = async (product) => {
+    if (!product.image_url) {
+      showAlertMessage("This product doesn't have an image to set.", "error");
+      return;
+    }
+    setHeroSaving(true);
+    try {
+      await updateHeroImageUrl(product.image_url);
+      setHeroImageUrl(product.image_url);
+      showAlertMessage(
+        `"${product.name}" image is now live on Home Page Main Section!`,
+        "success"
+      );
+    } catch (e) {
+      showAlertMessage("Failed to set hero image: " + e.message, "error");
+    } finally {
+      setHeroSaving(false);
+    }
+  };
+
+  const handleSaveHeroModal = async () => {
+    if (!heroFile && !heroUrlInput.trim() && !heroPreview) {
+      showAlertMessage("Please choose or enter an image first.", "error");
+      return;
+    }
+    setHeroSaving(true);
+    try {
+      let res;
+      if (heroFile) {
+        res = await uploadHeroImageFile(heroFile);
+      } else if (heroUrlInput.trim()) {
+        res = await updateHeroImageUrl(heroUrlInput.trim());
+      }
+      if (res?.image_url) {
+        setHeroImageUrl(res.image_url);
+        showAlertMessage(
+          "Home Page Main Section Image updated successfully!",
+          "success"
+        );
+        setShowHeroModal(false);
+        setHeroFile(null);
+        setHeroPreview(null);
+        setHeroUrlInput("");
+      }
+    } catch (e) {
+      showAlertMessage("Error saving image: " + e.message, "error");
+    } finally {
+      setHeroSaving(false);
+    }
+  };
+
+  const handleResetHeroModal = async () => {
+    setHeroSaving(true);
+    try {
+      const res = await resetHeroImage();
+      if (res?.image_url) {
+        setHeroImageUrl(res.image_url);
+        showAlertMessage(
+          "Home Page Main Image restored to default flagship model!",
+          "success"
+        );
+        setShowHeroModal(false);
+        setHeroFile(null);
+        setHeroPreview(null);
+        setHeroUrlInput("");
+      }
+    } catch (e) {
+      showAlertMessage("Failed to reset: " + e.message, "error");
+    } finally {
+      setHeroSaving(false);
+    }
+  };
+
   const showAlertMessage = useCallback((message, type = "info") => {
     setAlertMessage(message);
     setAlertType(type);
@@ -133,11 +243,12 @@ const ManageProducts = () => {
 
   useEffect(() => {
     fetchProducts();
+    fetchHeroImage();
     if (location.state?.successMessage) {
       showAlertMessage(location.state.successMessage, "success");
       window.history.replaceState({}, document.title);
     }
-  }, [fetchProducts, location.state, showAlertMessage]);
+  }, [fetchProducts, fetchHeroImage, location.state, showAlertMessage]);
 
   const filterAndSortProducts = useCallback(() => {
     let filtered = [...products];
@@ -485,6 +596,15 @@ const ManageProducts = () => {
           </button>
 
           <button
+            onClick={() => setShowHeroModal(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm rounded-xl shadow-sm shadow-amber-500/20 transition"
+            title="Update Home Page Main Section Image"
+          >
+            <FaStar className="text-xs" />
+            <span>Home Main Image</span>
+          </button>
+
+          <button
             onClick={() => navigate("/admin/addormodifyproducts")}
             className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm rounded-xl shadow-sm shadow-sky-500/20 transition"
           >
@@ -759,9 +879,17 @@ const ManageProducts = () => {
                           </div>
 
                           <div className="min-w-0 max-w-xs">
-                            <h3 className="font-bold text-slate-900 text-sm md:text-base truncate">
-                              {product.name}
-                            </h3>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <h3 className="font-bold text-slate-900 text-sm md:text-base truncate">
+                                {product.name}
+                              </h3>
+                              {isHeroProduct(product) && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-100 text-amber-900 border border-amber-300 shrink-0 shadow-xs">
+                                  <FaStar className="text-[9px] text-amber-500" />
+                                  <span>Hero Image</span>
+                                </span>
+                              )}
+                            </div>
                             <p className="text-xs sm:text-sm text-slate-500 font-medium truncate mt-0.5">
                               {product.technology || product.capacity || "Water Purifier"}
                             </p>
@@ -858,6 +986,23 @@ const ManageProducts = () => {
                                 title="Edit Product"
                               >
                                 <FaEdit className="text-sm" />
+                              </button>
+
+                              <button
+                                onClick={() => handleSetProductAsHero(product)}
+                                disabled={heroSaving}
+                                className={`p-2 rounded-xl transition ${
+                                  isHeroProduct(product)
+                                    ? "text-amber-500 bg-amber-50 hover:bg-amber-100"
+                                    : "text-slate-400 hover:text-amber-500 hover:bg-amber-50"
+                                }`}
+                                title={
+                                  isHeroProduct(product)
+                                    ? "Currently active on Home Page Main Section"
+                                    : "Set this product's image as Home Page Main Section Image"
+                                }
+                              >
+                                <FaStar className="text-sm" />
                               </button>
 
                               <button
@@ -1114,6 +1259,190 @@ const ManageProducts = () => {
               >
                 {loading ? "Restoring..." : "Restore Product"}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Home Page Main Image Modal */}
+      {showHeroModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-6 border border-slate-100 space-y-5 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-amber-100 text-amber-600 text-base">
+                  <FaStar />
+                </span>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900">
+                    Home Page Main Section Image
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    Select a product from your catalog or upload a new image for the hero spotlight banner.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowHeroModal(false);
+                  setHeroFile(null);
+                  setHeroPreview(null);
+                  setHeroUrlInput("");
+                }}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-xl"
+              >
+                <FaTimes />
+              </button>
+            </div>
+
+            {/* Current Active Preview */}
+            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex items-center gap-4">
+              <div className="w-20 h-20 bg-white rounded-xl border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden">
+                <img
+                  src={
+                    heroPreview ||
+                    resolveProductImg(heroImageUrl, "Hero Spotlight")
+                  }
+                  alt="Current Main Hero"
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  <FaCheck className="text-[8px]" />
+                  <span>Currently Live on Storefront</span>
+                </span>
+                <p className="text-xs text-slate-500 truncate mt-1">
+                  {heroImageUrl || "/products/aquapure_copper_plus.png"}
+                </p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Only the Home Page main section image changes; catalog products remain untouched.
+                </p>
+              </div>
+            </div>
+
+            {/* Method 1: Choose from Catalog */}
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                Option 1: Pick from Existing Products (1-Click)
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+                {products
+                  .filter((p) => p.is_deleted === 0)
+                  .map((product) => {
+                    const isSelected = isHeroProduct(product);
+                    return (
+                      <div
+                        key={product.product_id}
+                        onClick={() => handleSetProductAsHero(product)}
+                        className={`p-2.5 rounded-xl border cursor-pointer flex items-center gap-2.5 transition ${
+                          isSelected
+                            ? "bg-amber-50 border-amber-400 ring-1 ring-amber-300"
+                            : "bg-white hover:bg-slate-50 border-slate-200"
+                        }`}
+                      >
+                        <div className="w-10 h-10 bg-slate-50 rounded-lg border border-slate-200 p-1 flex items-center justify-center shrink-0">
+                          <img
+                            src={resolveProductImg(
+                              product.image_url,
+                              product.name
+                            )}
+                            alt={product.name}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-bold text-slate-800 truncate">
+                            {product.name}
+                          </p>
+                          <span className="text-[10px] text-slate-500">
+                            {isSelected ? "★ Active on Home" : "Click to select"}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
+            {/* Method 2: Upload Custom Image or Enter URL */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500">
+                Option 2: Upload New Image File or Direct URL
+              </label>
+
+              <div className="flex gap-2">
+                <input
+                  ref={heroFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) {
+                      setHeroFile(f);
+                      setHeroPreview(URL.createObjectURL(f));
+                    }
+                  }}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => heroFileInputRef.current?.click()}
+                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shrink-0"
+                >
+                  <FaImage />
+                  <span>{heroFile ? heroFile.name : "Browse File..."}</span>
+                </button>
+
+                <input
+                  type="url"
+                  placeholder="Or paste image URL (https://...)"
+                  value={heroUrlInput}
+                  onChange={(e) => {
+                    setHeroUrlInput(e.target.value);
+                    if (e.target.value) setHeroPreview(e.target.value);
+                  }}
+                  className="flex-1 px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:border-sky-500"
+                />
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={handleResetHeroModal}
+                disabled={heroSaving}
+                className="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition flex items-center gap-1.5"
+              >
+                <FaUndo className="text-[10px]" />
+                <span>Reset to Default Model</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowHeroModal(false);
+                    setHeroFile(null);
+                    setHeroPreview(null);
+                    setHeroUrlInput("");
+                  }}
+                  className="px-3 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition"
+                >
+                  Close
+                </button>
+                {(heroFile || heroUrlInput.trim()) && (
+                  <button
+                    type="button"
+                    onClick={handleSaveHeroModal}
+                    disabled={heroSaving}
+                    className="px-4 py-2 text-xs font-bold text-white bg-amber-500 hover:bg-amber-600 rounded-xl shadow-sm transition"
+                  >
+                    {heroSaving ? "Saving..." : "Save Custom Image"}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

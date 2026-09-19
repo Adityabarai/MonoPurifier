@@ -258,10 +258,10 @@ const AdminSettings = () => {
             </p>
 
             <Link
-              to="/admin/home-image"
+              to="/admin/manageproducts"
               className="inline-flex items-center justify-center gap-2 w-full py-2.5 bg-white hover:bg-sky-50 text-sky-700 font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-sm"
             >
-              <span>Manage Main Image</span>
+              <span>Manage in All Products</span>
               <FaArrowRight className="text-xs" />
             </Link>
           </div>

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { FaUpload, FaImage, FaTimes } from "react-icons/fa";
+import { FaUpload, FaImage, FaTimes, FaStar, FaCheckCircle } from "react-icons/fa";
 import {
   getProductById,
   saveProduct,
   uploadProductImage,
+  getHeroImage,
+  updateHeroImageUrl,
   SERVER_URL,
 } from "../../services/api";
 
@@ -33,6 +35,9 @@ const AddOrModifyProduct = () => {
   const [existingImageUrl, setExistingImageUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isHeroImage, setIsHeroImage] = useState(false);
+  const [heroSuccess, setHeroSuccess] = useState("");
+  const [settingHero, setSettingHero] = useState(false);
 
   const staticCategories = [
     "Water Purifier",
@@ -76,6 +81,18 @@ const AddOrModifyProduct = () => {
           else resolved = "/products/aquapure_ro_elite.png";
         }
         setImagePreview(resolved);
+
+        // Check if this product is currently the hero image
+        try {
+          const heroRes = await getHeroImage();
+          if (
+            heroRes?.image_url &&
+            (heroRes.image_url === product.image_url ||
+              heroRes.image_url.endsWith(product.image_url.split("/").pop()))
+          ) {
+            setIsHeroImage(true);
+          }
+        } catch (_) {}
       }
     } catch (err) {
       setError("Failed to load product data");
@@ -125,6 +142,25 @@ const AddOrModifyProduct = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
+  const handleSetHeroNow = async () => {
+    const activeUrl = imagePreview?.startsWith("blob:") ? null : (existingImageUrl || imagePreview);
+    if (!activeUrl) {
+      setError("Please save the product first so the image is permanently stored.");
+      return;
+    }
+    setSettingHero(true);
+    try {
+      await updateHeroImageUrl(activeUrl);
+      setIsHeroImage(true);
+      setHeroSuccess("This image is now set as the Home Page Main Section Image!");
+      setTimeout(() => setHeroSuccess(""), 5000);
+    } catch (e) {
+      setError("Failed to set as hero image: " + (e.message || ""));
+    } finally {
+      setSettingHero(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -156,11 +192,20 @@ const AddOrModifyProduct = () => {
 
       await saveProduct(productData);
 
+      // If set as hero image, update hero image settings as well
+      if (isHeroImage && image_url) {
+        try {
+          await updateHeroImageUrl(image_url);
+        } catch (e) {
+          console.warn("Hero image update notice:", e);
+        }
+      }
+
       navigate("/admin/manageproducts", {
         state: {
           successMessage: isEditMode
-            ? "Product updated successfully!"
-            : "Product created successfully!",
+            ? "Product updated successfully!" + (isHeroImage ? " Set as Home Main Image." : "")
+            : "Product created successfully!" + (isHeroImage ? " Set as Home Main Image." : ""),
         },
       });
     } catch (err) {
@@ -258,6 +303,80 @@ const AddOrModifyProduct = () => {
                 >
                   <FaUpload /> {imagePreview ? "Change Image" : "Upload Image"}
                 </button>
+              </div>
+
+              {/* Home Page Main Section (Hero) Image Option */}
+              <div
+                className={`mt-4 p-4 rounded-xl border transition ${
+                  isHeroImage
+                    ? "bg-amber-50/90 border-amber-300 shadow-sm"
+                    : "bg-slate-50 border-slate-200"
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={`p-2 rounded-xl text-base ${
+                        isHeroImage
+                          ? "bg-amber-500 text-white shadow-sm"
+                          : "bg-slate-200 text-slate-500"
+                      }`}
+                    >
+                      <FaStar />
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                        <span>Set as Home Page Main Section Image</span>
+                        {isHeroImage && (
+                          <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-amber-200 text-amber-900 border border-amber-300">
+                            Active Hero
+                          </span>
+                        )}
+                      </h4>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Feature this product's image as the flagship purifier spotlight on the Home Page hero banner.
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                    <input
+                      type="checkbox"
+                      checked={isHeroImage}
+                      onChange={(e) => setIsHeroImage(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                  </label>
+                </div>
+
+                {heroSuccess && (
+                  <div className="mt-3 p-2.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs font-semibold text-emerald-800 flex items-center gap-2 animate-fade-in">
+                    <FaCheckCircle className="text-emerald-600 text-sm shrink-0" />
+                    <span>{heroSuccess}</span>
+                  </div>
+                )}
+
+                {isEditMode && existingImageUrl && (
+                  <div className="mt-3 pt-3 border-t border-slate-200/80 flex items-center justify-between text-xs">
+                    <span className="text-slate-500">
+                      {isHeroImage
+                        ? "★ Currently set as Home Page Main Image"
+                        : "Not set on home page"}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleSetHeroNow}
+                      disabled={settingHero}
+                      className="px-3 py-1 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-lg shadow-sm transition flex items-center gap-1.5"
+                    >
+                      <FaStar className="text-[10px]" />
+                      <span>
+                        {settingHero ? "Setting..." : "Set as Home Main Image Now"}
+                      </span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
