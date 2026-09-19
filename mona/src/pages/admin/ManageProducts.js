@@ -32,6 +32,14 @@ const ManageProducts = () => {
   const API_URL = API_BASE_URL;
 
   const resolveProductImg = (url, name = "") => {
+    // 1. Dynamic priority: If url exists and is valid, ALWAYS use the dynamic database URL!
+    if (url) {
+      if (url.startsWith("http://") || url.startsWith("https://")) return url;
+      if (url.startsWith("/uploads/")) return `${SERVER_URL}${url}`;
+      if (url.startsWith("/products/")) return url;
+    }
+
+    // 2. Fallback only if no URL in database or legacy broken path:
     const n = (name || "").toLowerCase();
     if (n.includes("copper")) return "/products/aquapure_copper_plus.png";
     if (n.includes("uv pro") || n.includes("uv"))
@@ -39,13 +47,7 @@ const ManageProducts = () => {
     if (n.includes("compact")) return "/products/aquapure_compact.png";
     if (n.includes("alkaline")) return "/products/aquapure_alkaline_max.png";
     if (n.includes("basic")) return "/products/aquapure_basic.png";
-    if (n.includes("elite") || n.includes("ro"))
-      return "/products/aquapure_ro_elite.png";
-
-    if (!url) return "/products/aquapure_ro_elite.png";
-    if (url.startsWith("http")) return url;
-    if (url.startsWith("/uploads/")) return `${SERVER_URL}${url}`;
-    return url;
+    return "/products/aquapure_ro_elite.png";
   };
 
   const staticCategories = [

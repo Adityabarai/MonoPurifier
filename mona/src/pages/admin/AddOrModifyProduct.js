@@ -61,11 +61,20 @@ const AddOrModifyProduct = () => {
       });
       if (product.image_url) {
         setExistingImageUrl(product.image_url);
-        const resolved = product.image_url.startsWith("http")
-          ? product.image_url
-          : product.image_url.startsWith("/uploads/")
-          ? `${SERVER_URL}${product.image_url}`
-          : product.image_url;
+        let resolved = product.image_url;
+        if (product.image_url.startsWith("http://") || product.image_url.startsWith("https://")) {
+          resolved = product.image_url;
+        } else if (product.image_url.startsWith("/uploads/")) {
+          resolved = `${SERVER_URL}${product.image_url}`;
+        } else if (product.image_url.startsWith("/products/")) {
+          resolved = product.image_url;
+        } else {
+          // If legacy broken path like /images/elite.png, resolve gracefully
+          const n = (product.name || "").toLowerCase();
+          if (n.includes("uv")) resolved = "/products/aquapure_uv_pro.png";
+          else if (n.includes("copper")) resolved = "/products/aquapure_copper_plus.png";
+          else resolved = "/products/aquapure_ro_elite.png";
+        }
         setImagePreview(resolved);
       }
     } catch (err) {
@@ -210,6 +219,10 @@ const AddOrModifyProduct = () => {
                       src={imagePreview}
                       alt="Preview"
                       className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "/products/aquapure_ro_elite.png";
+                      }}
                     />
                     <button
                       type="button"

@@ -32,18 +32,27 @@ const Home = () => {
 
   const getProductImage = (p) => {
     if (!p) return "/products/aquapure_ro_elite.png";
+
+    // 1. Dynamic priority: If database has an image URL, ALWAYS use it!
+    if (p.image_url) {
+      if (p.image_url.startsWith("http://") || p.image_url.startsWith("https://")) {
+        return p.image_url;
+      }
+      if (p.image_url.startsWith("/uploads/")) {
+        return `${SERVER_URL}${p.image_url}`;
+      }
+      if (p.image_url.startsWith("/products/")) {
+        return p.image_url;
+      }
+    }
+
+    // 2. Fallback only if no image in database
     const name = (p.name || "").toLowerCase();
     if (name.includes("copper")) return "/products/aquapure_copper_plus.png";
     if (name.includes("uv pro") || name.includes("uv")) return "/products/aquapure_uv_pro.png";
     if (name.includes("compact")) return "/products/aquapure_compact.png";
     if (name.includes("alkaline")) return "/products/aquapure_alkaline_max.png";
     if (name.includes("basic")) return "/products/aquapure_basic.png";
-    if (name.includes("elite") || name.includes("ro")) return "/products/aquapure_ro_elite.png";
-
-    if (p.image_url && p.image_url.startsWith("http")) return p.image_url;
-    if (p.image_url && p.image_url.startsWith("/uploads/")) {
-      return `${SERVER_URL}${p.image_url}`;
-    }
     return "/products/aquapure_ro_elite.png";
   };
 
