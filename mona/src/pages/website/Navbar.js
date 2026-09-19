@@ -34,8 +34,8 @@ function Navbar() {
     <nav
       className={`sticky top-0 z-50 transition-all duration-300 font-sans ${
         scrolled
-          ? "bg-white/90 backdrop-blur-md shadow-md py-3 border-b border-slate-100"
-          : "bg-white/95 backdrop-blur-sm py-4 border-b border-slate-200/80"
+          ? "bg-white/95 backdrop-blur-md shadow-sm py-2 border-b border-slate-100"
+          : "bg-white/95 backdrop-blur-sm py-2.5 sm:py-3 border-b border-slate-200/80"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

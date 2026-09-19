@@ -58,6 +58,8 @@ const Home = () => {
     // 2. Fallback only if no image in database
     const name = (p.name || "").toLowerCase();
     if (name.includes("copper")) return "/products/aquapure_copper_plus.png";
+    if (name.includes("smart") || name.includes("iot")) return "/products/aquapure_smart_iot.jpg";
+    if (name.includes("commercial")) return "/products/aquapure_commercial_50lph.jpg";
     if (name.includes("uv pro") || name.includes("uv")) return "/products/aquapure_uv_pro.png";
     if (name.includes("compact")) return "/products/aquapure_compact.png";
     if (name.includes("alkaline")) return "/products/aquapure_alkaline_max.png";
@@ -100,122 +102,164 @@ const Home = () => {
       original_price: 16999,
       badge: "Best Seller",
       rating: 4.8,
-      reviews_count: 340,
+      reviews_count: 480,
       capacity: "10L Storage Tank",
-      technology: "7-Stage RO + UV + UF + TDS",
-      description: "Premium 7-stage RO purifier with smart LED display and active copper technology for clean, healthy drinking water.",
+      technology: "7-Stage RO + UV + UF + TDS Controller",
+      description: "Our #1 bestselling domestic purifier engineered for high TDS borewell and municipal water with taste enhancer technology.",
       features: [
         "7-Stage Advanced Filtration",
         "0.0001 Micron RO Membrane",
         "Smart LED TDS & Filter Indicator",
         "Free Doorstep Installation",
       ],
-      image_url: "/uploads/products/aquapure_ro_elite.png",
+      image_url: "/products/aquapure_ro_elite.png",
       image: "💧",
     },
     {
       id: 2,
+      name: "AquaPure UV Pro Direct",
+      category: "UV Purifier",
+      price: 8999,
+      original_price: 11999,
+      badge: "Popular",
+      rating: 4.6,
+      reviews_count: 290,
+      capacity: "8L Capacity",
+      technology: "UV-C + Ultra Filtration (UF) + Pre-Carbon",
+      description: "Zero water wastage high-speed filtration system designed specifically for municipal and corporation water supplies.",
+      features: [
+        "100% Zero Water Wastage",
+        "Instant UV-C Germicidal Disinfection",
+        "Auto Shut-off Sensor",
+        "Ideal for Municipal Water",
+      ],
+      image_url: "/products/aquapure_uv_pro.png",
+      image: "🌊",
+    },
+    {
+      id: 3,
       name: "AquaPure Copper+ Alkaline",
       category: "Alkaline RO",
       price: 15999,
       original_price: 19999,
-      badge: "Doctor Recommended",
+      badge: "★ Flagship 2026",
       rating: 4.9,
       reviews_count: 512,
-      capacity: "12L Storage",
-      technology: "RO + UV + Copper + Alkaline",
-      description: "Infuses health benefits of copper and alkaline minerals into pure RO water for enhanced digestion and immunity.",
+      capacity: "12L Storage Tank",
+      technology: "RO + UV + Active Copper + Bio-Alkaline",
+      description: "Infuses natural copper ions and essential alkaline minerals to balance drinking water pH to 8.5+ with 99.9% virus eradication.",
       features: [
         "pH 8.5+ Bio-Alkaline Balance",
         "99.9% Pure Active Copper Infusion",
         "UV-C In-Tank Sterilizer",
         "Stainless Steel Tank",
       ],
-      image_url: "/uploads/products/aquapure_copper_plus.png",
+      image_url: "/products/aquapure_copper_plus.png",
       image: "✨",
     },
     {
-      id: 3,
-      name: "AquaPure UV Pro",
-      category: "UV Purifier",
-      price: 8999,
-      original_price: 11999,
-      badge: "Popular",
-      rating: 4.6,
-      reviews_count: 220,
-      capacity: "8L Capacity",
-      technology: "UV + UF Technology",
-      description: "Energy efficient UV + UF purifier kills 99.9% germs and bacteria with auto shut-off function.",
-      features: [
-        "Dual Stage UV + Ultra Filtration",
-        "High-Flow Zero Water Wastage",
-        "Auto Shut-off Sensor",
-        "Ideal for Municipal Water",
-      ],
-      image_url: "/uploads/products/aquapure_uv_pro.png",
-      image: "🌊",
-    },
-    {
       id: 4,
-      name: "AquaPure Compact Wall Mount",
-      category: "Wall Mount RO",
-      price: 9999,
-      original_price: 12999,
-      badge: "Space Saver",
-      rating: 4.5,
-      reviews_count: 180,
-      capacity: "6L Tank",
-      technology: "6-Stage Compact RO",
-      description: "Space saving sleek wall-mount design with 6-stage purification, perfect for modern compact modular kitchens.",
+      name: "AquaPure Smart IoT Touch",
+      category: "Smart RO",
+      price: 18499,
+      original_price: 23999,
+      badge: "Smart IoT",
+      rating: 4.9,
+      reviews_count: 328,
+      capacity: "10L Storage Tank",
+      technology: "Smart IoT + Digital TDS Display + 8-Stage RO+UV",
+      description: "Next-gen purifier with live digital touch screen, real-time TDS ppm display, WiFi mobile app monitoring, and automatic filter life alert.",
       features: [
-        "Ultra-Slim Wall-Mount Profile",
-        "6-Stage Multi-Filtration",
-        "Transparent Water Level Window",
-        "Low Power Consumption",
+        "Real-time Digital TDS & Purity Display",
+        "WiFi & Bluetooth App Monitoring",
+        "Auto Filter Health Indicator Ring",
+        "0.0001 Micron High-Recovery RO Membrane",
       ],
-      image_url: "/uploads/products/aquapure_compact.png",
-      image: "🏡",
+      image_url: "/products/aquapure_smart_iot.jpg",
+      image: "📱",
     },
     {
       id: 5,
       name: "AquaPure Alkaline Max",
       category: "Alkaline RO",
-      price: 18999,
-      original_price: 22999,
-      badge: "Flagship",
-      rating: 5.0,
-      reviews_count: 145,
-      capacity: "15L Storage",
-      technology: "9-Stage Alkaline + Copper",
-      description: "Ultimate health purification with pH balancing alkaline filters and smartphone app telemetry integration.",
+      price: 14499,
+      original_price: 18499,
+      badge: "Doctor Recommended",
+      rating: 4.8,
+      reviews_count: 360,
+      capacity: "11L Storage Tank",
+      technology: "Bio-Alkaline + RO + UV + Hydrogen Infusion",
+      description: "Enriches drinking water with essential magnesium, calcium, and potassium electrolytes, ideal for digestion, bone health, and athletic recovery.",
       features: [
-        "9-Stage Medical Grade Filtration",
-        "Micro-Cluster Hydration Technology",
-        "Smartphone WiFi Health Telemetry",
-        "Lifetime Stainless Steel Tank",
+        "Bioceramic Mineralizer Cartridge",
+        "Boosts Water Antioxidant ORP",
+        "Retains 100% Essential Natural Minerals",
+        "Free Installation & 1-Yr Warranty",
       ],
-      image_url: "/uploads/products/aquapure_alkaline_max.png",
+      image_url: "/products/aquapure_alkaline_max.png",
       image: "👑",
     },
     {
       id: 6,
-      name: "AquaPure Basic Eco",
+      name: "AquaPure Compact Wall-Mount",
+      category: "Wall Mount RO",
+      price: 9999,
+      original_price: 12999,
+      badge: "Space Saver",
+      rating: 4.5,
+      reviews_count: 215,
+      capacity: "6L Compact Tank",
+      technology: "6-Stage Micro RO + UV",
+      description: "Ultra-slim ergonomic wall-mount design crafted for modern apartments and compact modular kitchens without compromising filtration.",
+      features: [
+        "Ultra-Slim Wall-Mount Profile",
+        "6-Stage Multi-Filtration",
+        "Transparent Water Level Window",
+        "Silent Booster Pump Technology",
+      ],
+      image_url: "/products/aquapure_compact.png",
+      image: "🏡",
+    },
+    {
+      id: 7,
+      name: "AquaPure Commercial Pro 50 LPH",
+      category: "Commercial RO",
+      price: 32999,
+      original_price: 42000,
+      badge: "Heavy Duty",
+      rating: 4.9,
+      reviews_count: 145,
+      capacity: "50 Litres/Hour Flow",
+      technology: "Dual Commercial RO + Industrial UV + Dual Gauges",
+      description: "Heavy-duty industrial stainless steel RO purification system engineered for corporate offices, hospitals, restaurants, and educational campuses.",
+      features: [
+        "50 LPH Continuous High-Flow Output",
+        "Dual Industrial Pressure Gauges",
+        "Commercial Grade Stainless Steel Chassis",
+        "Auto Flushing Membrane Cycle",
+      ],
+      image_url: "/products/aquapure_commercial_50lph.jpg",
+      image: "🏢",
+    },
+    {
+      id: 8,
+      name: "AquaPure Basic PureFlow",
       category: "UV Purifier",
       price: 5999,
       original_price: 7999,
-      badge: "Budget Friendly",
-      rating: 4.3,
-      reviews_count: 290,
-      capacity: "5L Storage",
-      technology: "UV Purification",
-      description: "Reliable and budget-friendly purification for municipal tap water supplies with low maintenance costs.",
+      badge: "Value Choice",
+      rating: 4.4,
+      reviews_count: 190,
+      capacity: "5L Storage Tank",
+      technology: "Triple Stage Carbon + Sediment + UV",
+      description: "Reliable and economical water purification for low-TDS municipal tap water with negligible maintenance and replaceable cartridges.",
       features: [
         "Pure UV Disinfection",
         "Low Operating Cost",
         "Compact Countertop Footprint",
         "Zero Waste Water",
       ],
-      image_url: "/uploads/products/aquapure_basic.png",
+      image_url: "/products/aquapure_basic.png",
       image: "🌱",
     },
   ];
@@ -360,15 +404,15 @@ const Home = () => {
       {/* ========================================================
           1. HERO SECTION
          ======================================================== */}
-      <section id="home" className="relative pt-12 pb-20 md:pt-20 md:pb-28 overflow-hidden bg-gradient-to-b from-sky-50 via-white to-slate-50">
+      <section id="home" className="relative pt-4 pb-12 sm:pt-6 sm:pb-16 md:pt-8 md:pb-20 overflow-hidden bg-gradient-to-b from-sky-50 via-white to-slate-50">
         {/* Subtle decorative background glows */}
         <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/4 w-96 h-96 bg-sky-200/50 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-0 translate-y-12 -translate-x-1/4 w-96 h-96 bg-blue-200/40 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Copy */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+            <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-sky-100/80 border border-sky-200 text-sky-700 text-xs font-bold tracking-wide uppercase">
                 <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
                 <span>⭐ Rated #1 Water Purifier Brand 2026</span>
@@ -402,7 +446,7 @@ const Home = () => {
               </div>
 
               {/* Quick Trust Checks */}
-              <div className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-y-2 gap-x-6 text-xs font-semibold text-slate-500">
+              <div className="pt-3 flex flex-wrap items-center justify-center lg:justify-start gap-y-2 gap-x-6 text-xs font-semibold text-slate-500">
                 <span className="flex items-center gap-1.5 text-slate-700">
                   <FaCheckCircle className="text-emerald-500" /> Free TDS Water Test
                 </span>
@@ -419,9 +463,9 @@ const Home = () => {
             <div className="lg:col-span-5">
               <div className="relative mx-auto max-w-md">
                 {/* Product Card Container */}
-                <div className="glass-card rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/80 relative overflow-hidden bg-white/90">
+                <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-2xl border border-white/80 relative overflow-hidden bg-white/95">
                   {/* Badge */}
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-3">
                     <span className="px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs font-extrabold uppercase rounded-full tracking-wider shadow-sm">
                       ★ Flagship 2026 Model
                     </span>
@@ -431,11 +475,11 @@ const Home = () => {
                   </div>
 
                   {/* Purifier Hero Graphic */}
-                  <div className="h-72 rounded-2xl bg-white flex items-center justify-center relative p-3 mb-6 group overflow-hidden border border-slate-100 shadow-sm">
+                  <div className="h-72 sm:h-80 rounded-2xl bg-gradient-to-b from-slate-50/50 to-white flex items-center justify-center relative p-2 mb-4 group overflow-hidden border border-slate-100 shadow-sm">
                     <img
                       src={resolveHeroImageUrl(heroImage)}
                       alt="AquaPure Copper+ Alkaline Flagship"
-                      className="max-h-full max-w-full object-contain transform group-hover:scale-105 transition-transform duration-300 drop-shadow-xl"
+                      className="max-h-full max-w-full object-contain p-2 transform group-hover:scale-105 transition-transform duration-300 drop-shadow-2xl"
                       onError={(e) => {
                         e.target.src = "/products/aquapure_copper_plus.png";
                       }}
