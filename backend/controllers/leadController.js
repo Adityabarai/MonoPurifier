@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const localDb = require("../config/localDb");
 
 // Submit a new demonstration / inquiry lead
 exports.createLead = async (req, res) => {
@@ -11,7 +12,7 @@ exports.createLead = async (req, res) => {
       });
     }
 
-    const { data, error } = await db.from("leads").insert({
+    let result = await db.from("leads").insert({
       name: name.trim(),
       phone: phone.trim(),
       address: address ? address.trim() : "",
@@ -19,11 +20,22 @@ exports.createLead = async (req, res) => {
       status: "New",
     });
 
-    if (error) throw error;
+    if (result.error && db !== localDb) {
+      console.warn("Primary DB error on insert lead, using localDb fallback:", result.error.message);
+      result = await localDb.from("leads").insert({
+        name: name.trim(),
+        phone: phone.trim(),
+        address: address ? address.trim() : "",
+        model: model ? model.trim() : "Standard RO Purifier",
+        status: "New",
+      });
+    }
+
+    if (result.error) throw result.error;
 
     res.status(201).json({
       message: "Demonstration booked successfully! Our technician will contact you shortly.",
-      lead: data ? data[0] : null,
+      lead: result.data ? result.data[0] : null,
     });
   } catch (error) {
     console.error("Error creating lead:", error);
@@ -34,8 +46,15 @@ exports.createLead = async (req, res) => {
 // Get all customer leads (Admin only)
 exports.getAllLeads = async (req, res) => {
   try {
-    const { data, error } = await db.from("leads").select("*");
+    let { data, error } = await db.from("leads").select("*");
+    if (error && db !== localDb) {
+      console.warn("Primary DB error on fetch leads, using localDb fallback:", error.message);
+      const localRes = await localDb.from("leads").select("*");
+      data = localRes.data;
+      error = localRes.error;
+    }
     if (error) throw error;
+
     // Return sorted by newest first
     const sorted = [...(data || [])].sort((a, b) => {
       const dateA = new Date(a.created_at || 0);
@@ -64,16 +83,23 @@ exports.updateLeadStatus = async (req, res) => {
       updatePayload.notes = notes;
     }
 
-    const { data, error } = await db
+    let result = await db
       .from("leads")
       .update(updatePayload)
       .eq("id", id);
 
-    if (error) throw error;
+    if (result.error && db !== localDb) {
+      result = await localDb
+        .from("leads")
+        .update(updatePayload)
+        .eq("id", id);
+    }
+
+    if (result.error) throw result.error;
 
     res.json({
       message: `Lead status updated to ${status}`,
-      lead: data ? data[0] : null,
+      lead: result.data ? result.data[0] : null,
     });
   } catch (error) {
     console.error("Error updating lead status:", error);
@@ -85,8 +111,11 @@ exports.updateLeadStatus = async (req, res) => {
 exports.deleteLead = async (req, res) => {
   try {
     const { id } = req.params;
-    const { error } = await db.from("leads").delete().eq("id", id);
-    if (error) throw error;
+    let result = await db.from("leads").delete().eq("id", id);
+    if (result.error && db !== localDb) {
+      result = await localDb.from("leads").delete().eq("id", id);
+    }
+    if (result.error) throw result.error;
 
     res.json({ message: "Lead removed successfully", id });
   } catch (error) {
@@ -94,4 +123,5 @@ exports.deleteLead = async (req, res) => {
     res.status(500).json({ message: "Error deleting lead", error: error.message });
   }
 };
+
 
