@@ -2,40 +2,6 @@
 
 A full-stack e-commerce and customer engagement platform for water purification systems, complete with customer-facing catalog, demo inquiry capture, and a comprehensive admin back-office.
 
----
-
-## 📚 Complete Project Documentation
-
-Detailed technical documents are available in the [`docs/`](file:///c:/Users/Tushal/Desktop/MonoPurifier/docs/) directory:
-
-| Document | Description |
-| :--- | :--- |
-| 📖 [**How To Run Guide**](file:///c:/Users/Tushal/Desktop/MonoPurifier/docs/HOW_TO_RUN.md) | Complete step-by-step instructions to run frontend and backend locally with default logins. |
-| 🏗️ [**System Design & Architecture**](file:///c:/Users/Tushal/Desktop/MonoPurifier/docs/SYSTEM_DESIGN.md) | Component architecture, data flow, security model, and complete API specifications. |
-| 🗄️ [**Database Design & Schema**](file:///c:/Users/Tushal/Desktop/MonoPurifier/docs/DATABASE_DESIGN.md) | ER diagram, table definitions, dual-mode (SQLite / Supabase) details, and SQL scripts. |
-
----
-
-## ⚡ Quick Start
-
-### 1. Start the Backend API (Port 5000)
-```powershell
-cd backend
-npm install
-npm start
-```
-
-### 2. Start the Frontend Application (Port 3000)
-```powershell
-cd mona
-npm install
-npm start
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
----
-
 ## 🌟 Key Features
 
 * **Customer Storefront (`/`)**:
